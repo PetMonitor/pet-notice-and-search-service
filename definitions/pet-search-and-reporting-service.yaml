@@ -1,0 +1,350 @@
+swagger: "2.0"
+info:
+  description: "The API describes the entities involved and methods used by the service that will search for lost pets and report lost and found pets."
+  version: "0.0.1"
+  title: "Pet search and reporting service API"
+
+# host: TODO: put heroku link
+tags:
+- name: "reports"
+  description: "Management of the reports"
+- name: "similar pets"
+  description: "Management of the search of near pets in terms of similarity"
+
+schemes:
+- "https"
+
+parameters:
+  user-id:
+    name: "userId"
+    in: "path"
+    description: "Identifier of a user"
+    required: true
+    type: integer
+  report-id:
+    name: "reportId"
+    in: "path"
+    description: "Identifier of a report"
+    required: true
+    type: integer
+
+paths:
+  /reports:
+    get:
+      tags:
+      - "reports"
+      summary: "Gets all the reports"
+      operationId: "getAllReports"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Reports retrieved successfully"
+          schema:
+            properties:
+              code:
+                type: integer
+              reports:
+                $ref: '#/definitions/reports'
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+  /users/{userId}/reports:
+    parameters:
+    - $ref: "#/parameters/user-id"
+    post:
+      tags:
+      - "reports"
+      summary: "Creates a new report"
+      operationId: "addReport"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/report"
+      responses:
+        201:
+          description: "Created"
+          schema:
+            properties:
+              code:
+                type: integer
+              report:
+                $ref: '#/definitions/report'
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        409:
+          description: "Conflict Error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+    get:
+      tags:
+      - "reports"
+      summary: "Gets all the reports from a user"
+      operationId: "getReportsFromUser"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Reports retrieved successfully"
+          schema:
+            properties:
+              code:
+                type: integer
+              reports:
+                $ref: '#/definitions/reports'
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+  /users/{userId}/reports/{reportId}:
+    parameters:
+    - $ref: "#/parameters/user-id"
+    - $ref: "#/parameters/report-id"
+    put:
+      tags:
+      - "report"
+      summary: "Updates an existing report"
+      operationId: "updateReport"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Report that needs to be updated"
+        required: true
+        schema:
+          $ref: "#/definitions/report"
+      responses:
+        200:
+          description: "Report updated successfully"
+          schema:
+            properties:
+              code:
+                type: integer
+              reports:
+                $ref: '#/definitions/report'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        404:
+          description: "Report not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        409:
+          description: "Conflict Error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+    delete:
+      tags:
+      - "report"
+      summary: "Deletes a report"
+      operationId: "deleteReport"
+      produces:
+      - "application/json"
+      responses:
+        204:
+          description: "Report deleted successfully"
+        404:
+          description: "Report not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+  /similar-pets:
+    post:
+      tags:
+      - "similar pets"
+      summary: "Gets all the pets reported which are similar to the one provided"
+      operationId: "getSimilarPets"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/reports"
+      responses:
+        200:
+          description: "Pets successfully retrieved"
+          schema:
+            properties:
+              code:
+                type: integer
+              report:
+                $ref: '#/definitions/reports'
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+
+#*********************#
+#**** DEFINITIONS ****#
+#*********************#
+definitions:
+  reports:
+    type: array
+    items:
+      $ref: "#/definitions/report"
+
+  report:
+    type: object
+    properties:
+      id:
+        description: Identifier for the report.
+        type: string
+        format: uuid
+        readOnly: true
+      _ref:
+        type: string
+        description: |
+          Hash that is used to prevent collisions. When doing an update, the
+          server will check whether this value equals the stored one. If
+          the values differ, it means that the resource was updated in
+          between, so the update will fail.
+      reportType:
+        description: Defines the report type based on the pet's situation.
+        type: string
+        enum:
+          - lost
+          - found
+          - stolen
+          - for_adoption
+      eventLocation:
+        description: If the pet was lost or stolen, indicates its last location. Otherwise, the location where it was found.
+        type: string
+      description:
+        description: Extra information included in the report.
+        type: string
+      eventTimestamp:
+        description: Date and hour in which the reported event occurred.
+        type: string
+        format: datetime
+      userId:
+        description: Id of the report creator.
+        type: string
+        format: uuid
+        readOnly: true
+      pet:
+        $ref: '#/definitions/pet'
+    required:
+      - reportType
+      - pet
+      - eventLocation
+      - eventTimestamp
+  pet:
+    type: object
+    properties:
+      type:
+        description: Defines the type of pet.
+        type: string
+        enum:
+          - dog
+          - cat
+      name:
+        description: Name of the pet.
+        type: string
+      furColor:
+        description: Indicates color or colors of the pet's fur.
+        type: array
+        items:
+          type: string
+        minItems: 1
+      eyesColor:
+        description: Indicate the color or colors of the pet's eyes.
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 2
+      size:
+        description: Defines the size of the pet's body.
+        type: string
+        enum:
+          - small
+          - medium
+          - big
+      lifeStage:
+        description: Stage of the life the pet is currently at.
+        type: string
+        enum:
+          - puppy
+          - adult
+          - old
+      age:
+        description: Age of the pet.
+        type: integer
+      sex:
+        description: Sex of the pet.
+        type: string
+        enum:
+          - male
+          - female
+      breed:
+        description: Breed of the pet.
+        type: string
+        enum:
+          - crossbreed
+          - labrador retriever
+          - golden retrievera
+          # CONTINUAR ? habria que diferenciar entre gatos y perros
+      photos:
+        $ref: "#/definitions/petPhotos"
+    required:
+      - name
+      - furColor
+      - eyesColor
+      - size
+      - sex
+      - breed
+      - photos
+  petPhotos:
+    description: Set of pictures from a pet.
+    type: array
+    items:
+      type: string
+      format: binary
+    minItems: 1
+  errorResponse:
+    type: object
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
