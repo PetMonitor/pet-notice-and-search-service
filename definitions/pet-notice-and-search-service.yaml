@@ -2,18 +2,21 @@ swagger: "2.0"
 info:
   description: "The API describes the entities involved and methods used by the service that will search for lost pets and report lost and found pets."
   version: "0.0.1"
-  title: "Pet search and reporting service API"
+  title: "Pet search and notice service API"
 
 # host: TODO: put heroku link
 tags:
-- name: "reports"
-  description: "Management of the reports"
+- name: "notices"
+  description: "Management of the notices"
 - name: "similar pets"
   description: "Management of the search of near pets in terms of similarity"
 
 schemes:
 - "https"
 
+#########################################################
+#                      PARAMETERS                       #
+#########################################################
 parameters:
   user-id:
     name: "userId"
@@ -21,45 +24,47 @@ parameters:
     description: "Identifier of a user"
     required: true
     type: integer
-  report-id:
-    name: "reportId"
+  notice-id:
+    name: "noticeId"
     in: "path"
-    description: "Identifier of a report"
+    description: "Identifier of a notice"
     required: true
     type: integer
 
+
+#########################################################
+#                         PATHS                         #
+#########################################################
 paths:
-  /reports:
+  /notices:
     get:
       tags:
-      - "reports"
-      summary: "Gets all the reports"
-      operationId: "getAllReports"
+      - "notices"
+      summary: "Gets all the notices"
       consumes:
       - "application/json"
       produces:
       - "application/json"
       responses:
         200:
-          description: "Reports retrieved successfully"
+          description: "Notices retrieved successfully"
           schema:
             properties:
               code:
                 type: integer
-              reports:
-                $ref: '#/definitions/reports'
+              notices:
+                $ref: '#/definitions/notices'
         500:
           description: "Internal server error"
           schema:
             $ref: "#/definitions/errorResponse"
-  /users/{userId}/reports:
+  /users/{userId}/notices:
     parameters:
     - $ref: "#/parameters/user-id"
     post:
       tags:
-      - "reports"
-      summary: "Creates a new report"
-      operationId: "addReport"
+      - "notices"
+      summary: "Creates a new notice for the user"
       consumes:
       - "application/json"
       produces:
@@ -69,7 +74,7 @@ paths:
         name: "body"
         required: true
         schema:
-          $ref: "#/definitions/report"
+          $ref: "#/definitions/notice"
       responses:
         201:
           description: "Created"
@@ -77,8 +82,8 @@ paths:
             properties:
               code:
                 type: integer
-              report:
-                $ref: '#/definitions/report'
+              notice:
+                $ref: '#/definitions/notice'
         400:
           description: "Bad request"
           schema:
@@ -93,22 +98,21 @@ paths:
             $ref: "#/definitions/errorResponse"
     get:
       tags:
-      - "reports"
-      summary: "Gets all the reports from a user"
-      operationId: "getReportsFromUser"
+      - "notices"
+      summary: "Gets all the notices from a user"
       consumes:
       - "application/json"
       produces:
       - "application/json"
       responses:
         200:
-          description: "Reports retrieved successfully"
+          description: "Notices retrieved successfully"
           schema:
             properties:
               code:
                 type: integer
-              reports:
-                $ref: '#/definitions/reports'
+              notices:
+                $ref: '#/definitions/notices'
         400:
           description: "Bad request"
           schema:
@@ -117,15 +121,14 @@ paths:
           description: "Internal server error"
           schema:
             $ref: "#/definitions/errorResponse"
-  /users/{userId}/reports/{reportId}:
+  /users/{userId}/notices/{noticeId}:
     parameters:
     - $ref: "#/parameters/user-id"
-    - $ref: "#/parameters/report-id"
+    - $ref: "#/parameters/notice-id"
     put:
       tags:
-      - "report"
-      summary: "Updates an existing report"
-      operationId: "updateReport"
+      - "notice"
+      summary: "Updates an existing notice"
       consumes:
       - "application/json"
       produces:
@@ -133,25 +136,25 @@ paths:
       parameters:
       - in: "body"
         name: "body"
-        description: "Report that needs to be updated"
+        description: "Notice that needs to be updated"
         required: true
         schema:
-          $ref: "#/definitions/report"
+          $ref: "#/definitions/notice"
       responses:
         200:
-          description: "Report updated successfully"
+          description: "Notice updated successfully"
           schema:
             properties:
               code:
                 type: integer
-              reports:
-                $ref: '#/definitions/report'
+              notice:
+                $ref: '#/definitions/notice'
         400:
           description: "Bad Request"
           schema:
             $ref: "#/definitions/errorResponse"
         404:
-          description: "Report not found"
+          description: "Notice not found"
           schema:
             $ref: "#/definitions/errorResponse"
         409:
@@ -164,16 +167,15 @@ paths:
             $ref: "#/definitions/errorResponse"
     delete:
       tags:
-      - "report"
-      summary: "Deletes a report"
-      operationId: "deleteReport"
+      - "notice"
+      summary: "Deletes a notice"
       produces:
       - "application/json"
       responses:
         204:
-          description: "Report deleted successfully"
+          description: "Notice deleted successfully"
         404:
-          description: "Report not found"
+          description: "Notice not found"
           schema:
             $ref: "#/definitions/errorResponse"
         500:
@@ -185,7 +187,6 @@ paths:
       tags:
       - "similar pets"
       summary: "Gets all the pets reported which are similar to the one provided"
-      operationId: "getSimilarPets"
       consumes:
       - "application/json"
       produces:
@@ -195,7 +196,12 @@ paths:
         name: "body"
         required: true
         schema:
-          $ref: "#/definitions/reports"
+          type: object
+          properties:
+            pets:
+              type: array
+              items:
+                $ref: "#/definitions/pet"
       responses:
         200:
           description: "Pets successfully retrieved"
@@ -203,8 +209,8 @@ paths:
             properties:
               code:
                 type: integer
-              report:
-                $ref: '#/definitions/reports'
+              pets:
+                $ref: '#/definitions/pets'
         400:
           description: "Bad request"
           schema:
@@ -214,20 +220,20 @@ paths:
           schema:
             $ref: "#/definitions/errorResponse"
 
-#*********************#
-#**** DEFINITIONS ****#
-#*********************#
+#########################################################
+#                      DEFINITIONS                      #
+#########################################################
 definitions:
-  reports:
+  notices:
     type: array
     items:
-      $ref: "#/definitions/report"
+      $ref: "#/definitions/notice"
 
-  report:
+  notice:
     type: object
     properties:
       id:
-        description: Identifier for the report.
+        description: Identifier of the notice.
         type: string
         format: uuid
         readOnly: true
@@ -238,8 +244,8 @@ definitions:
           server will check whether this value equals the stored one. If
           the values differ, it means that the resource was updated in
           between, so the update will fail.
-      reportType:
-        description: Defines the report type based on the pet's situation.
+      noticeType:
+        description: Defines the notice type based on the pet's situation.
         type: string
         enum:
           - lost
@@ -250,27 +256,46 @@ definitions:
         description: If the pet was lost or stolen, indicates its last location. Otherwise, the location where it was found.
         type: string
       description:
-        description: Extra information included in the report.
+        description: Extra information included in the notice.
         type: string
       eventTimestamp:
         description: Date and hour in which the reported event occurred.
         type: string
         format: datetime
       userId:
-        description: Id of the report creator.
+        description: Id of the notice owner.
         type: string
         format: uuid
         readOnly: true
-      pet:
-        $ref: '#/definitions/pet'
+      petId:
+        description: Id of the reported pet.
+        type: string
+        format: uuid
     required:
-      - reportType
-      - pet
+      - noticeType
       - eventLocation
       - eventTimestamp
+      - petId
+
+  pets:
+    type: array
+    items:
+      $ref: "#/definitions/pet"
   pet:
     type: object
     properties:
+      id:
+          description: Identifier of the pet.
+          type: string
+          format: uuid
+          readOnly: true
+      _ref:
+        type: string
+        description: |
+          Hash that is used to prevent collisions. When doing an update, the
+          server will check whether this value equals the stored one. If
+          the values differ, it means that the resource was updated in
+          between, so the update will fail.
       type:
         description: Defines the type of pet.
         type: string
@@ -322,8 +347,11 @@ definitions:
         enum:
           - crossbreed
           - labrador retriever
-          - golden retrievera
+          - golden retriever
           # CONTINUAR ? habria que diferenciar entre gatos y perros
+      description:
+        description: Extra information to describe the pet.
+        type: string
       photos:
         $ref: "#/definitions/petPhotos"
     required:
