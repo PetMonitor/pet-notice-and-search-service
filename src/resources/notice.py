@@ -42,7 +42,7 @@ notices_db = {
         str(NOTICE_ID1): {
             'id': uuid.uuid4(),
             '_ref': uuid.uuid4(),
-            'noticeType': NoticeType.FOUND,
+            'noticeType': NoticeType.FOUND.name,
             'eventLocation': "CABA",
             'description': "insert text",
             'eventTimestamp': datetime.now(timezone.utc).timestamp(),
@@ -54,7 +54,7 @@ notices_db = {
         str(NOTICE_ID2): {
             'id': uuid.uuid4(),
             '_ref': uuid.uuid4(),
-            'noticeType': NoticeType.LOST,
+            'noticeType': NoticeType.LOST.name,
             'eventLocation': "Rosario",
             'description': "insert text",
             'eventTimestamp': datetime.now(timezone.utc).timestamp(),
@@ -66,7 +66,7 @@ notices_db = {
         str(NOTICE_ID3): {
             'id': uuid.uuid4(),
             '_ref': uuid.uuid4(),
-            'noticeType': NoticeType.FOR_ADOPTION,
+            'noticeType': NoticeType.FOR_ADOPTION.name,
             'eventLocation': "Campana",
             'description': "insert text",
             'eventTimestamp': datetime.now(timezone.utc).timestamp(),

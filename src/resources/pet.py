@@ -43,7 +43,7 @@ pets_db = {
         str(PET_ID1): {
             'id': uuid.uuid4(),
             '_ref': uuid.uuid4(),
-            'type': PetType.DOG,
+            'type': PetType.DOG.name,
             'name': "firulais",
             'furColor': ['brown'],
             'eyesColor': ['black'],
@@ -61,7 +61,7 @@ pets_db = {
         str(PET_ID2): {
             'id': uuid.uuid4(),
             '_ref': uuid.uuid4(),
-            'type': PetType.DOG,
+            'type': PetType.DOG.name,
             'name': "blondie",
             'furColor': ['blonde'],
             'eyesColor': ['blue', 'gray'],
@@ -79,7 +79,7 @@ pets_db = {
         str(PET_ID3): {
             'id': uuid.uuid4(),
             '_ref': uuid.uuid4(),
-            'type': PetType.CAT,
+            'type': PetType.CAT.name,
             'name': "yuli",
             'furColor': ['white', 'orange'],
             'eyesColor': ['brown'],
@@ -122,6 +122,7 @@ class UserPets(Resource):
         """
         args = self.create_args.parse_args()
         # TODO: Request to db server
+        # Create the vector here??? or when creating a notice?
         new_pet = {
             'id': uuid.uuid4(),
             '_ref': uuid.uuid4(),
