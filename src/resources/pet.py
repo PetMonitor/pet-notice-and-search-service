@@ -11,6 +11,20 @@ class PetType(Enum):
     DOG = auto()
     CAT = auto()
 
+class PetSize(Enum):
+    SMALL = auto()
+    MEDIUM = auto()
+    LARGE = auto()
+
+class PetLifeStage(Enum):
+    BABY = auto()
+    ADULT = auto()
+    SENIOR = auto()
+
+class PetSex(Enum):
+    MALE = auto()
+    FEMALE = auto()
+
 # Fields returned by the src for the Pet resource
 pet_fields = {
     'id': fields.String,
@@ -47,10 +61,10 @@ pets_db = {
             'name': "firulais",
             'furColor': ['brown'],
             'eyesColor': ['black'],
-            'size': 'small',
-            'lifeStage': 'adult',
+            'size': PetSize.SMALL.name,
+            'lifeStage': PetLifeStage.ADULT.name,
             'age': 8,
-            'sex': 'male',
+            'sex': PetSex.MALE.name,
             'breed': 'crossbreed',
             'description': 'some description',
             'photos': ['test'],
@@ -65,10 +79,10 @@ pets_db = {
             'name': "blondie",
             'furColor': ['blonde'],
             'eyesColor': ['blue', 'gray'],
-            'size': 'medium',
-            'lifeStage': 'puppy',
+            'size': PetSize.MEDIUM.name,
+            'lifeStage': PetLifeStage.BABY.name,
             'age': None,
-            'sex': 'female',
+            'sex': PetSex.FEMALE.name,
             'breed': 'crossbreed',
             'description': 'some description',
             'photos': ['test'],
@@ -83,10 +97,10 @@ pets_db = {
             'name': "yuli",
             'furColor': ['white', 'orange'],
             'eyesColor': ['brown'],
-            'size': 'small',
-            'lifeStage': 'adult',
+            'size': PetSize.SMALL.name,
+            'lifeStage': PetLifeStage.ADULT.name,
             'age': 6,
-            'sex': 'female',
+            'sex': PetSex.FEMALE.name,
             'breed': 'crossbreed',
             'description': 'some description',
             'photos': ['test'],

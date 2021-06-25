@@ -7,9 +7,15 @@ info:
 # host: TODO: put heroku link
 tags:
 - name: "notices"
-  description: "Management of the notices"
+  description: "Management of notices"
+- name: "notice"
+  description: "Management of a notice"
+- name: "pets"
+  description: "Management of pets"
+- name: "pet"
+  description: "Management of a pet"
 - name: "similar pets"
-  description: "Management of the search of near pets in terms of similarity"
+  description: "Management of near pets searches (in terms of similarity)"
 
 schemes:
 - "https"
@@ -23,13 +29,22 @@ parameters:
     in: "path"
     description: "Identifier of a user"
     required: true
-    type: integer
+    type: string
+    format: uuid
   notice-id:
     name: "noticeId"
     in: "path"
     description: "Identifier of a notice"
     required: true
-    type: integer
+    type: string
+    format: uuid
+  pet-id:
+    name: "petId"
+    in: "path"
+    description: "Identifier of a pet"
+    required: true
+    type: string
+    format: uuid
 
 
 #########################################################
@@ -50,8 +65,6 @@ paths:
           description: "Notices retrieved successfully"
           schema:
             properties:
-              code:
-                type: integer
               notices:
                 $ref: '#/definitions/notices'
         500:
@@ -80,8 +93,6 @@ paths:
           description: "Created"
           schema:
             properties:
-              code:
-                type: integer
               notice:
                 $ref: '#/definitions/notice'
         400:
@@ -99,7 +110,7 @@ paths:
     get:
       tags:
       - "notices"
-      summary: "Gets all the notices from a user"
+      summary: "Gets all the notices of a user"
       consumes:
       - "application/json"
       produces:
@@ -109,12 +120,14 @@ paths:
           description: "Notices retrieved successfully"
           schema:
             properties:
-              code:
-                type: integer
               notices:
                 $ref: '#/definitions/notices'
         400:
           description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        404:
+          description: "Notice not found"
           schema:
             $ref: "#/definitions/errorResponse"
         500:
@@ -125,6 +138,33 @@ paths:
     parameters:
     - $ref: "#/parameters/user-id"
     - $ref: "#/parameters/notice-id"
+    get:
+      tags:
+      - "notice"
+      summary: "Gets a particular notice of a user"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Notice retrieved successfully"
+          schema:
+            properties:
+              notice:
+                $ref: '#/definitions/notice'
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        404:
+          description: "Notice not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
     put:
       tags:
       - "notice"
@@ -145,8 +185,6 @@ paths:
           description: "Notice updated successfully"
           schema:
             properties:
-              code:
-                type: integer
               notice:
                 $ref: '#/definitions/notice'
         400:
@@ -182,6 +220,155 @@ paths:
           description: "Internal server error"
           schema:
             $ref: "#/definitions/errorResponse"
+  /users/{userId}/pets:
+    parameters:
+    - $ref: "#/parameters/user-id"
+    post:
+      tags:
+      - "pets"
+      summary: "Creates a new pet for the user"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/pet"
+      responses:
+        201:
+          description: "Created"
+          schema:
+            properties:
+              pet:
+                $ref: '#/definitions/pet'
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        409:
+          description: "Conflict Error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+    get:
+      tags:
+      - "pets"
+      summary: "Gets all the pets of a user"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Pets retrieved successfully"
+          schema:
+            properties:
+              pets:
+                $ref: '#/definitions/pets'
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        404:
+          description: "Pet not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+  /users/{userId}/pets/{petId}:
+    parameters:
+    - $ref: "#/parameters/user-id"
+    - $ref: "#/parameters/pet-id"
+    get:
+      tags:
+      - "pet"
+      summary: "Gets a particular pet of a user"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Pet retrieved successfully"
+          schema:
+            properties:
+              pet:
+                $ref: '#/definitions/pet'
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        404:
+          description: "Notice not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+    put:
+      tags:
+      - "pet"
+      summary: "Updates an existing pet"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Pet that needs to be updated"
+        required: true
+        schema:
+          $ref: "#/definitions/pet"
+      responses:
+        200:
+          description: "Pet updated successfully"
+          schema:
+            properties:
+              pet:
+                $ref: '#/definitions/pet'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        404:
+          description: "Pet not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        409:
+          description: "Conflict Error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+    delete:
+      tags:
+      - "pet"
+      summary: "Deletes a pet"
+      produces:
+      - "application/json"
+      responses:
+        204:
+          description: "Pet deleted successfully"
+        404:
+          description: "Pet not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
   /similar-pets:
     post:
       tags:
@@ -207,8 +394,6 @@ paths:
           description: "Pets successfully retrieved"
           schema:
             properties:
-              code:
-                type: integer
               pets:
                 $ref: '#/definitions/pets'
         400:
@@ -248,10 +433,10 @@ definitions:
         description: Defines the notice type based on the pet's situation.
         type: string
         enum:
-          - lost
-          - found
-          - stolen
-          - for_adoption
+          - LOST
+          - FOUND
+          - STOLEN
+          - FOR_ADOPTION
       eventLocation:
         description: If the pet was lost or stolen, indicates its last location. Otherwise, the location where it was found.
         type: string
@@ -300,8 +485,8 @@ definitions:
         description: Defines the type of pet.
         type: string
         enum:
-          - dog
-          - cat
+          - DOG
+          - CAT
       name:
         description: Name of the pet.
         type: string
@@ -322,16 +507,16 @@ definitions:
         description: Defines the size of the pet's body.
         type: string
         enum:
-          - small
-          - medium
-          - big
+          - SMALL
+          - MEDIUM
+          - LARGE
       lifeStage:
         description: Stage of the life the pet is currently at.
         type: string
         enum:
-          - puppy
-          - adult
-          - old
+          - BABY
+          - ADULT
+          - SENIOR
       age:
         description: Age of the pet.
         type: integer
@@ -339,8 +524,8 @@ definitions:
         description: Sex of the pet.
         type: string
         enum:
-          - male
-          - female
+          - MALE
+          - FEMALE
       breed:
         description: Breed of the pet.
         type: string
@@ -354,6 +539,10 @@ definitions:
         type: string
       photos:
         $ref: "#/definitions/petPhotos"
+      userId:
+        description: Id of the pet owner.
+        type: string
+        format: uuid
     required:
       - name
       - furColor
@@ -363,12 +552,13 @@ definitions:
       - breed
       - photos
   petPhotos:
-    description: Set of pictures from a pet.
+    description: Set of pictures of a pet.
     type: array
     items:
       type: string
       format: binary
     minItems: 1
+
   errorResponse:
     type: object
     properties:
