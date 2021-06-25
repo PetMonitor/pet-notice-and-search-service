@@ -1,0 +1,568 @@
+swagger: "2.0"
+info:
+  description: "The API describes the entities involved and methods used by the service that will search for lost pets and report lost and found pets."
+  version: "0.0.1"
+  title: "Pet search and notice service API"
+
+# host: TODO: put heroku link
+tags:
+- name: "notices"
+  description: "Management of notices"
+- name: "notice"
+  description: "Management of a notice"
+- name: "pets"
+  description: "Management of pets"
+- name: "pet"
+  description: "Management of a pet"
+- name: "similar pets"
+  description: "Management of near pets searches (in terms of similarity)"
+
+schemes:
+- "https"
+
+#########################################################
+#                      PARAMETERS                       #
+#########################################################
+parameters:
+  user-id:
+    name: "userId"
+    in: "path"
+    description: "Identifier of a user"
+    required: true
+    type: string
+    format: uuid
+  notice-id:
+    name: "noticeId"
+    in: "path"
+    description: "Identifier of a notice"
+    required: true
+    type: string
+    format: uuid
+  pet-id:
+    name: "petId"
+    in: "path"
+    description: "Identifier of a pet"
+    required: true
+    type: string
+    format: uuid
+
+
+#########################################################
+#                         PATHS                         #
+#########################################################
+paths:
+  /notices:
+    get:
+      tags:
+      - "notices"
+      summary: "Gets all the notices"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Notices retrieved successfully"
+          schema:
+            properties:
+              notices:
+                $ref: '#/definitions/notices'
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+  /users/{userId}/notices:
+    parameters:
+    - $ref: "#/parameters/user-id"
+    post:
+      tags:
+      - "notices"
+      summary: "Creates a new notice for the user"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/notice"
+      responses:
+        201:
+          description: "Created"
+          schema:
+            properties:
+              notice:
+                $ref: '#/definitions/notice'
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        409:
+          description: "Conflict Error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+    get:
+      tags:
+      - "notices"
+      summary: "Gets all the notices of a user"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Notices retrieved successfully"
+          schema:
+            properties:
+              notices:
+                $ref: '#/definitions/notices'
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        404:
+          description: "Notice not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+  /users/{userId}/notices/{noticeId}:
+    parameters:
+    - $ref: "#/parameters/user-id"
+    - $ref: "#/parameters/notice-id"
+    get:
+      tags:
+      - "notice"
+      summary: "Gets a particular notice of a user"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Notice retrieved successfully"
+          schema:
+            properties:
+              notice:
+                $ref: '#/definitions/notice'
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        404:
+          description: "Notice not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+    put:
+      tags:
+      - "notice"
+      summary: "Updates an existing notice"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Notice that needs to be updated"
+        required: true
+        schema:
+          $ref: "#/definitions/notice"
+      responses:
+        200:
+          description: "Notice updated successfully"
+          schema:
+            properties:
+              notice:
+                $ref: '#/definitions/notice'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        404:
+          description: "Notice not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        409:
+          description: "Conflict Error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+    delete:
+      tags:
+      - "notice"
+      summary: "Deletes a notice"
+      produces:
+      - "application/json"
+      responses:
+        204:
+          description: "Notice deleted successfully"
+        404:
+          description: "Notice not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+  /users/{userId}/pets:
+    parameters:
+    - $ref: "#/parameters/user-id"
+    post:
+      tags:
+      - "pets"
+      summary: "Creates a new pet for the user"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/pet"
+      responses:
+        201:
+          description: "Created"
+          schema:
+            properties:
+              pet:
+                $ref: '#/definitions/pet'
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        409:
+          description: "Conflict Error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+    get:
+      tags:
+      - "pets"
+      summary: "Gets all the pets of a user"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Pets retrieved successfully"
+          schema:
+            properties:
+              pets:
+                $ref: '#/definitions/pets'
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        404:
+          description: "Pet not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+  /users/{userId}/pets/{petId}:
+    parameters:
+    - $ref: "#/parameters/user-id"
+    - $ref: "#/parameters/pet-id"
+    get:
+      tags:
+      - "pet"
+      summary: "Gets a particular pet of a user"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Pet retrieved successfully"
+          schema:
+            properties:
+              pet:
+                $ref: '#/definitions/pet'
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        404:
+          description: "Notice not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+    put:
+      tags:
+      - "pet"
+      summary: "Updates an existing pet"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Pet that needs to be updated"
+        required: true
+        schema:
+          $ref: "#/definitions/pet"
+      responses:
+        200:
+          description: "Pet updated successfully"
+          schema:
+            properties:
+              pet:
+                $ref: '#/definitions/pet'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        404:
+          description: "Pet not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        409:
+          description: "Conflict Error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+    delete:
+      tags:
+      - "pet"
+      summary: "Deletes a pet"
+      produces:
+      - "application/json"
+      responses:
+        204:
+          description: "Pet deleted successfully"
+        404:
+          description: "Pet not found"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+  /similar-pets:
+    post:
+      tags:
+      - "similar pets"
+      summary: "Gets all the pets reported which are similar to the one provided"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          type: object
+          properties:
+            pets:
+              type: array
+              items:
+                $ref: "#/definitions/pet"
+      responses:
+        200:
+          description: "Pets successfully retrieved"
+          schema:
+            properties:
+              pets:
+                $ref: '#/definitions/pets'
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/errorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+
+#########################################################
+#                      DEFINITIONS                      #
+#########################################################
+definitions:
+  notices:
+    type: array
+    items:
+      $ref: "#/definitions/notice"
+
+  notice:
+    type: object
+    properties:
+      id:
+        description: Identifier of the notice.
+        type: string
+        format: uuid
+        readOnly: true
+      _ref:
+        type: string
+        description: |
+          Hash that is used to prevent collisions. When doing an update, the
+          server will check whether this value equals the stored one. If
+          the values differ, it means that the resource was updated in
+          between, so the update will fail.
+      noticeType:
+        description: Defines the notice type based on the pet's situation.
+        type: string
+        enum:
+          - LOST
+          - FOUND
+          - STOLEN
+          - FOR_ADOPTION
+      eventLocation:
+        description: If the pet was lost or stolen, indicates its last location. Otherwise, the location where it was found.
+        type: string
+      description:
+        description: Extra information included in the notice.
+        type: string
+      eventTimestamp:
+        description: Date and hour in which the reported event occurred.
+        type: string
+        format: datetime
+      userId:
+        description: Id of the notice owner.
+        type: string
+        format: uuid
+        readOnly: true
+      petId:
+        description: Id of the reported pet.
+        type: string
+        format: uuid
+    required:
+      - noticeType
+      - eventLocation
+      - eventTimestamp
+      - petId
+
+  pets:
+    type: array
+    items:
+      $ref: "#/definitions/pet"
+  pet:
+    type: object
+    properties:
+      id:
+          description: Identifier of the pet.
+          type: string
+          format: uuid
+          readOnly: true
+      _ref:
+        type: string
+        description: |
+          Hash that is used to prevent collisions. When doing an update, the
+          server will check whether this value equals the stored one. If
+          the values differ, it means that the resource was updated in
+          between, so the update will fail.
+      type:
+        description: Defines the type of pet.
+        type: string
+        enum:
+          - DOG
+          - CAT
+      name:
+        description: Name of the pet.
+        type: string
+      furColor:
+        description: Indicates color or colors of the pet's fur.
+        type: array
+        items:
+          type: string
+        minItems: 1
+      eyesColor:
+        description: Indicate the color or colors of the pet's eyes.
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 2
+      size:
+        description: Defines the size of the pet's body.
+        type: string
+        enum:
+          - SMALL
+          - MEDIUM
+          - LARGE
+      lifeStage:
+        description: Stage of the life the pet is currently at.
+        type: string
+        enum:
+          - BABY
+          - ADULT
+          - SENIOR
+      age:
+        description: Age of the pet.
+        type: integer
+      sex:
+        description: Sex of the pet.
+        type: string
+        enum:
+          - MALE
+          - FEMALE
+      breed:
+        description: Breed of the pet.
+        type: string
+        enum:
+          - crossbreed
+          - labrador retriever
+          - golden retriever
+          # CONTINUAR ? habria que diferenciar entre gatos y perros
+      description:
+        description: Extra information to describe the pet.
+        type: string
+      photos:
+        $ref: "#/definitions/petPhotos"
+      userId:
+        description: Id of the pet owner.
+        type: string
+        format: uuid
+    required:
+      - name
+      - furColor
+      - eyesColor
+      - size
+      - sex
+      - breed
+      - photos
+  petPhotos:
+    description: Set of pictures of a pet.
+    type: array
+    items:
+      type: string
+      format: binary
+    minItems: 1
+
+  errorResponse:
+    type: object
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
