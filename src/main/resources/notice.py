@@ -5,6 +5,9 @@ from enum import Enum, auto
 
 from flask_restful import fields, reqparse, Resource, marshal_with
 
+DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
+
+
 class NoticeType(Enum):
     """ Defines the types of notices that can be created. """
     LOST = auto()
@@ -95,7 +98,7 @@ class UserNotices(Resource):
         super(UserNotices, self).__init__()
 
     @marshal_with(notices_fields)
-    def get(self, user_id):
+    def get(self, userId):
         """
         Retrieves all the notices created by a user.
         :param user_id identifier of the user who owns the notices.
@@ -106,7 +109,7 @@ class UserNotices(Resource):
         return '', http.HTTPStatus.NOT_FOUND
 
     @marshal_with(notice_fields)
-    def post(self, user_id):
+    def post(self, userId):
         """
         Creates a notice from a user.
         :param user_id identifier of the user who creates the notice.
@@ -141,7 +144,7 @@ class UserNotice(Resource):
         super(UserNotice, self).__init__()
 
     @marshal_with(notice_fields)
-    def get(self, user_id, notice_id):
+    def get(self, userId, noticeId):
         """
         Retrieves a notice created by a user.
         :param user_id identifier of the user who owns the notice.
@@ -154,7 +157,7 @@ class UserNotice(Resource):
         return '', http.HTTPStatus.NOT_FOUND
 
     @marshal_with(notice_fields)
-    def put(self, user_id, notice_id):
+    def put(self, userId, noticeId):
         """
         Updates a notice from a user.
         :param user_id identifier of the user who owns the notice.
@@ -182,7 +185,7 @@ class UserNotice(Resource):
             else:
                 return '', http.HTTPStatus.CONFLICT
 
-    def delete(self, user_id, notice_id):
+    def delete(self, userId, noticeId):
         """
         Deletes a notice from a user.
         :param user_id identifier of the user who owns the notice.

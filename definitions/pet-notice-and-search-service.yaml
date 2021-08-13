@@ -51,6 +51,63 @@ parameters:
 #                         PATHS                         #
 #########################################################
 paths:
+  /users/{userId}:
+    parameters:
+      - $ref: "#/parameters/user-id"
+    get:
+      tags:
+      - "users"
+      summary: "Gets a user's data"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "User successfully retrieved"
+          schema:
+            properties:
+              users:
+                $ref: '#/definitions/user'
+        404:
+          description: "User not found"
+          schema:
+            $ref: "#/definitions/errorResponse"        
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"
+  /users:
+    post:
+      tags:
+      - "users"
+      summary: "Creates a new user"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+        - in: body
+          name: user
+          description: 'The user to create'
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+              email:
+                type: string
+      responses:
+        200:
+          description: "User successfully retrieved"
+          schema:
+            properties:
+              users:
+                $ref: '#/definitions/user'  
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errorResponse"    
   /notices:
     get:
       tags:
@@ -409,6 +466,30 @@ paths:
 #                      DEFINITIONS                      #
 #########################################################
 definitions:
+  user:
+    type: object
+    properties:
+      id:
+        description: user identifier.
+        type: string
+        format: uuid
+        readOnly: true
+      _ref:
+        type: string
+        description: |
+          Hash that is used to prevent collisions. When doing an update, the
+          server will check whether this value equals the stored one. If
+          the values differ, it means that the resource was updated in
+          between, so the update will fail.
+      username:
+        description: user's username
+        type: string
+      password:
+        description: user's password
+        type: string
+      email:
+        description: user's email
+        type: string
   notices:
     type: array
     items:
@@ -496,13 +577,12 @@ definitions:
         items:
           type: string
         minItems: 1
-      eyesColor:
-        description: Indicate the color or colors of the pet's eyes.
-        type: array
-        items:
-          type: string
-        minItems: 1
-        maxItems: 2
+      rightEyeColor:
+        description: Indicate the pet's right eye color.
+        type: string        
+      leftEyeColor:
+        description: Indicate the pet's left eye color.
+        type: string
       size:
         description: Defines the size of the pet's body.
         type: string
@@ -518,7 +598,7 @@ definitions:
           - ADULT
           - SENIOR
       age:
-        description: Age of the pet.
+        description: Age of the pet (expressed in months).
         type: integer
       sex:
         description: Sex of the pet.

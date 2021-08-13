@@ -1,11 +1,13 @@
-import http
 import uuid
+import requests
+
+from os import getenv
 from enum import Enum, auto
-
+from http import HTTPStatus
 from flask_restful import fields, reqparse, Resource, marshal_with
+from src.main.resources.notice import USER_ID1, USER_ID2, USER_ID3
 
-from src.resources.notice import USER_ID1, USER_ID2, USER_ID3
-
+DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
 class PetType(Enum):
     DOG = auto()
@@ -117,20 +119,27 @@ class UserPets(Resource):
         super(UserPets, self).__init__()
 
     @marshal_with(pets_fields)
-    def get(self, user_id):
+    def get(self, userId):
         """
         Retrieves all the pets belonging to a user.
         :param user_id identifier of the owner of the pet.
         """
-        # TODO: Request to db server
-        if user_id in pets_db:
-            return {"pets": list(pets_db[user_id].values())}, http.HTTPStatus.OK
-        return '', http.HTTPStatus.NOT_FOUND
+        try:
+            userPetsURL = DATABASE_SERVER_URL + "/users/" + userId + "/pets"
+            print("Issue GET to " + userPetsURL)
+            response = requests.get(userPetsURL)
+            if response:
+                response.raise_for_status()
+                return response.json(), HTTPStatus.OK
+            return "No pets found for user with id {}".format(userId), HTTPStatus.NOT_FOUND
+        except Exception as e:
+            print("ERROR {}".format(e))
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR    
 
     @marshal_with(pet_fields)
-    def post(self, user_id):
+    def post(self, userId):
         """
-        Creates a pet from a user.
+        Creates a pet associated to a user.
         :param user_id identifier of the owner of the pet.
         :returns the new pet.
         """
@@ -143,7 +152,8 @@ class UserPets(Resource):
             'type': args['type'],
             'name': args['name'],
             'furColor': args['furColor'],
-            'eyesColor': args['eyesColor'],
+            'rightEyeColor': args['rightEyeColor'],
+            'leftEyeColor': args['leftEyeColor'],
             'size': args['size'],
             'lifeStage': args['lifeStage'],
             'age': args['age'],
@@ -158,7 +168,7 @@ class UserPets(Resource):
         else:
             pets_db[user_id] = {}
             pets_db[user_id][str(new_pet['id'])] = new_pet
-        return new_pet, http.HTTPStatus.CREATED
+        return new_pet, HTTPStatus.CREATED
 
 
 class UserPet(Resource):
@@ -170,20 +180,27 @@ class UserPet(Resource):
         super(UserPet, self).__init__()
 
     @marshal_with(pet_fields)
-    def get(self, user_id, pet_id):
+    def get(self, userId, petId):
         """
         Retrieves a specific pet from a user.
         :param user_id identifier of the user who owns the pet.
         :param pet_id identifier of the pet that will be retrieved.
         """
-        # TODO: Request to db server
-        pet = _get_user_pet(user_id, pet_id)
-        if pet:
-            return pet, http.HTTPStatus.OK
-        return '', http.HTTPStatus.NOT_FOUND
+        try:
+            userPetByIdURL = DATABASE_SERVER_URL + "/users/" + userId + "/pets/" + petId
+            print("Issue GET to " + userPetByIdURL)
+            response = requests.get(userPetByIdURL)
+            if response:
+                response.raise_for_status()
+                return response.json(), HTTPStatus.OK
+            return "Pet with id {} not found for user {}".format(petId, userId), HTTPStatus.NOT_FOUND
+        except Exception as e:
+            print("ERROR {}".format(e))
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR        
+
 
     @marshal_with(pet_fields)
-    def put(self, user_id, pet_id):
+    def put(self, userId, petId):
         """
         Updates a pet from a user.
         :param user_id identifier of the owner of the pet.
@@ -194,7 +211,7 @@ class UserPet(Resource):
         # TODO: Request to db server
         pet = _get_user_pet(user_id, pet_id)
         if not pet:
-            return '', http.HTTPStatus.NOT_FOUND
+            return '', HTTPStatus.NOT_FOUND
         else:
             if str(args['_ref']) == str(pet['_ref']):
                 pets_db[user_id][pet_id] = {
@@ -213,11 +230,11 @@ class UserPet(Resource):
                     'photos': args['photos'] ,
                     'userId': pet['userId']
                 }
-                return pets_db[user_id][pet_id], http.HTTPStatus.OK
+                return pets_db[user_id][pet_id], HTTPStatus.OK
             else:
-                return '', http.HTTPStatus.CONFLICT
+                return '', HTTPStatus.CONFLICT
 
-    def delete(self, user_id, pet_id):
+    def delete(self, userId, petId):
         """
         Deletes a pet from a user.
         :param user_id identifier of the owner of the pet.
@@ -226,11 +243,11 @@ class UserPet(Resource):
         # TODO: Request to db server
         pet = _get_user_pet(user_id, pet_id)
         if not pet:
-            return '', http.HTTPStatus.NOT_FOUND
+            return '', HTTPStatus.NOT_FOUND
         del pets_db[user_id][pet_id]
         if len(pets_db[user_id]) == 0:
             del pets_db[user_id]
-        return '', http.HTTPStatus.NO_CONTENT
+        return '', HTTPStatus.NO_CONTENT
 
 class SimilarPets(Resource):
 
@@ -242,7 +259,7 @@ class SimilarPets(Resource):
         # TODO: Request to server
         return {
             "pets": [list(user_pets.values()) for user_pets in pets_db.values()]
-        }, http.HTTPStatus.OK
+        }, HTTPStatus.OK
 
 
 def _get_user_pet(user_id, pet_id):

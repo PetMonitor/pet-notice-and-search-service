@@ -21,7 +21,7 @@ new_pet = response1.json()
 assert response1.status_code == 201
 print(new_pet)
 
-# Get pet by userId and peyId
+# Get pet by userId and petId
 pet_id = response1.json()['id']
 response2 = requests.get(BASE + f"users/{user_id}/pets/{pet_id}")
 assert response2.status_code == 200
