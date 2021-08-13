@@ -1,91 +1,56 @@
-import json
-from http import HTTPStatus
-from src.main.resources.notice import Notices, UserNotice, UserNotices
+from datetime import datetime, timezone
 
+import requests
+import uuid
 
-TEST_USER = {
-    "uuid": "123e4567-e89b-12d3-a456-426614174000",
-    "_ref": "e6ebed0b-803c-43be-baaf-d370bc4e07f0",
-    "username": "TerryPratchett",
-    "email": "terrypratchett@discworld.com"
-}
+BASE = "http://127.0.0.1:5000/api/v0/"
+user_id = uuid.uuid4()
 
-TEST_NOTICES = [
-      {
-        "uuid": "123e4567-e89b-12d3-a456-426614175555",
-        "_ref": "447b86ea-b1c7-4e2a-a167-7542dcfbfd24",
-        "petId": "123e4567-e89b-12d3-a456-426614174001",
-        "userId": "123e4567-e89b-12d3-a456-426614174000",
-        "noticeType": "LOST",
-        "eventLocationLat": "123",
-        "eventLocationLong": "345",
-        "description": "My pet is lost! Please help!",
-        "eventTimestamp": "2021-08-16T02:34:46+00:00",
-      },
-      {
-        "uuid": "123e4567-e89b-12d3-a456-426614176666",
-        "_ref": "05783c09-e5bb-4a47-8978-8c61b93ca545",
-        "petId": "123e4567-e89b-12d3-a456-426614174002",
-        "userId": "123e4567-e89b-12d3-a456-426614175000",
-        "noticeType": "FOUND",
-        "eventLocationLat": "123",
-        "eventLocationLong": "345",
-        "description": "I found this lovely dog!",
-        "eventTimestamp": "2021-08-16T02:34:46+00:00"
-      }
-]
+# Create notice
+response1 = requests.post(BASE + f"users/{user_id}/notices", data={'noticeType': "LOST", 'eventLocation': 'CABA', 'eventTimestamp': str(datetime.now(timezone.utc).timestamp()), 'petId': uuid.uuid4()})
+new_report = response1.json()
+assert response1.status_code == 201
+print(new_report)
 
-TEST_NOTICES_OUTPUT = [
-      {
-        "noticeId": "123e4567-e89b-12d3-a456-426614175555",
-        "_ref": "447b86ea-b1c7-4e2a-a167-7542dcfbfd24",
-        "petId": "123e4567-e89b-12d3-a456-426614174001",
-        "userId": "123e4567-e89b-12d3-a456-426614174000",
-        "noticeType": "LOST",
-        "eventLocation": {"lat":"123","long": "345"},
-        "description": "My pet is lost! Please help!",
-        "eventTimestamp": "2021-08-16T02:34:46+00:00",
-      },
-      {
-        "noticeId": "123e4567-e89b-12d3-a456-426614176666",
-        "_ref": "05783c09-e5bb-4a47-8978-8c61b93ca545",
-        "petId": "123e4567-e89b-12d3-a456-426614174002",
-        "userId": "123e4567-e89b-12d3-a456-426614175000",
-        "noticeType": "FOUND",
-        "eventLocation": {"lat":"123","long": "345"},
-        "description": "I found this lovely dog!",
-        "eventTimestamp": "2021-08-16T02:34:46+00:00"
-      }
-]
+# Get notice by userId and noticeId
+report_id = response1.json()['id']
+response2 = requests.get(BASE + f"users/{user_id}/notices/{report_id}")
+assert response2.status_code == 200
+print(response2.json())
+response3 = requests.get(BASE + f"users/{user_id}/notices/{uuid.uuid4()}")
+assert response3.status_code == 404
 
+# Get notice by userId
+response21 = requests.get(BASE + f"users/{user_id}/notices")
+assert response21.status_code == 200
+print(response21.json())
+assert len(response21.json()['notices']) == 1
 
-RESPONSE_BODY_IDX = 0
-RESPONSE_STATUS_IDX = 1
+response31 = requests.get(BASE + f"users/{uuid.uuid4()}/notices")
+assert response31.status_code == 404
 
-DATABASE_URL = "http://127.0.0.1:8000"
-DATABASE_USER_NOTICES_URL = DATABASE_URL + "/users/" + TEST_USER["uuid"] + "/notices"
+# Get all notices
+response211 = requests.get(BASE + "/notices")
+assert response211.status_code == 200
+print(response211.json())
+assert len(response211.json()['notices']) == 4
 
-def test_get_notices_returns_all_notices(requests_mock):
-    requests_mock.get(DATABASE_URL + "/notices", json=TEST_NOTICES)
-    response = Notices().get()
-    responseBody = response[RESPONSE_BODY_IDX]
-    print("Response body {}".format(json.dumps(responseBody)))
+# Update notice
+response4 = requests.put(BASE + f"users/{user_id}/notices/{report_id}", data={'_ref': new_report['_ref'], 'noticeType': "LOST", 'eventLocation': 'Mar del Plata', 'eventTimestamp': str(datetime.now(timezone.utc).timestamp()), 'petId': uuid.uuid4()})
+assert response4.status_code == 200
+print(response4.json())
 
-    # Verify response content 
-    assert len(responseBody) == len(TEST_NOTICES)
-    for i in range(len(TEST_NOTICES)):
-        assert json.dumps(responseBody[i], sort_keys=True) == json.dumps(TEST_NOTICES_OUTPUT[i], sort_keys=True)
-    assert response[RESPONSE_STATUS_IDX] == HTTPStatus.OK
+response41 = requests.put(BASE + f"users/{user_id}/notices/{uuid.uuid4()}", data={'_ref': new_report['_ref'], 'noticeType': "LOST", 'eventLocation': 'Mar del Plata', 'eventTimestamp': str(datetime.now(timezone.utc).timestamp()), 'petId': uuid.uuid4()})
+assert response41.status_code == 404
 
+# Delete notice
+response5 = requests.delete(BASE + f"users/{user_id}/notices/{report_id}")
+assert response5.status_code == 204
 
-def test_get_notice_by_id_returns_requested_notice(requests_mock):
-    noticeId = TEST_NOTICES[0]["uuid"]
-    requests_mock.get(DATABASE_USER_NOTICES_URL + "/" + noticeId, json=TEST_NOTICES[0])
-    response = UserNotice().get(TEST_USER["uuid"], noticeId)
-    notice = response[RESPONSE_BODY_IDX]
+response6 = requests.delete(BASE + f"users/{user_id}/notices/{uuid.uuid4()}")
+assert response6.status_code == 404
 
-    # Verify response content 
-    assert len(notice) == len(TEST_NOTICES_OUTPUT[0])
-    assert json.dumps(notice, sort_keys=True) == json.dumps(TEST_NOTICES_OUTPUT[0], sort_keys=True)
-    assert response[RESPONSE_STATUS_IDX] == HTTPStatus.OK
-
+response51 = requests.get(BASE + "/notices")
+assert response51.status_code == 200
+print(response51.json())
+assert len(response51.json()['notices']) == 3
