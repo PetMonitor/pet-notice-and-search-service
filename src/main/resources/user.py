@@ -38,8 +38,49 @@ class User(Resource):
                 return response.json(), HTTPStatus.OK
             return "User with id {} not found".format(userId), HTTPStatus.NOT_FOUND
         except Exception as e:
-            print("ERROR {}".format(e))
+            print("Failed to get user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
+    
+    def put(self, userId):
+        """
+        Modifies the user with the provided user id.
+        :param userId identifier of the user.
+        """
+        try:
+            updateUserURL = DATABASE_SERVER_URL + "/users/" + userId
+            args = self.create_args.parse_args()
+            #TODO: modify this to first get the user and then
+            #update only provided fields
+            modifiedUser = {
+                "username": args["username"],
+                "password": args["password"],
+                "email": args["email"]
+            }
+            print("Issue PUT to " + updateUserURL)
+            response = requests.put(updateUserURL, data=modifiedUser)
+            if response:
+                response.raise_for_status()
+                return "Successfully updated {} records".format(response.json()), HTTPStatus.OK
+        except Exception as e:
+            print("Failed to update user {}: {}".format(userId, e))
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR
+
+    def delete(self, userId):
+        """
+        Deletes the user with the provided user id.
+        :param userId identifier of the user.
+        """
+        try:
+            deleteUserURL = DATABASE_SERVER_URL + "/users/" + userId
+            print("Issue DELETE to " + deleteUserURL)
+            response = requests.delete(deleteUserURL)
+            if response:
+                response.raise_for_status()
+                return "Successfully deleted {} records".format(response.json()), HTTPStatus.OK
+        except Exception as e:
+            print("Failed to delete user {}: {}".format(userId, e))
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR
+
 
 class Users(Resource):
     def __init__(self):
@@ -81,9 +122,10 @@ class Users(Resource):
             response = requests.post(DATABASE_SERVER_URL + "/users", data=newUser)
             if response:
                 response.raise_for_status()
-                return newUser["uuid"], HTTPStatus.CREATED
+                return response.json(), HTTPStatus.CREATED
             return "Received empty response from database server. User creation failed.", HTTPStatus.INTERNAL_SERVER_ERROR
         except Exception as e:
+            print("Failed to create user: {}", e)
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
 
 

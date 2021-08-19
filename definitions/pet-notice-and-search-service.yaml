@@ -519,8 +519,10 @@ definitions:
           - STOLEN
           - FOR_ADOPTION
       eventLocation:
-        description: If the pet was lost or stolen, indicates its last location. Otherwise, the location where it was found.
-        type: string
+        description: If the pet was lost or stolen, indicates the latitude and longitude last location. Otherwise, the location where it was found.
+        type: array
+        items: 
+          type: string
       description:
         description: Extra information included in the notice.
         type: string
