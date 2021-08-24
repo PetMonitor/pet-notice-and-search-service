@@ -10,10 +10,8 @@ DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
 # Fields returned by the src for the User resource
 user_fields = {
-    "userId": fields.String(attribute="uuid"),
-    "_ref": fields.String,
+    "uuid": fields.String,
     "username": fields.String,
-    "password": fields.String,
     "email": fields.String
 }
 
@@ -99,6 +97,7 @@ class Users(Resource):
             response = requests.get(allUsersURL)
             if response:
                 response.raise_for_status()
+                print("Response was {}".format(response.json()))
                 return response.json(), HTTPStatus.OK
             return "Received empty response from server for GET /users", HTTPStatus.NOT_FOUND
         except Exception as e:
@@ -114,7 +113,6 @@ class Users(Resource):
             args = self.create_args.parse_args()
             newUser = {
                 "uuid": uuid.uuid4(),
-                "_ref": uuid.uuid4(),
                 "username": args["username"],
                 "password": args["password"],
                 "email": args["email"]

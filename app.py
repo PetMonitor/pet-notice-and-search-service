@@ -1,4 +1,3 @@
-from src.main import app
 from flask import Flask
 from flask_restful import Api
 from src.main.resources.notice import Notices, UserNotices, UserNotice
