@@ -10,4 +10,8 @@ notifications:
     recipients:
       - mmariotti@fi.uba.ar
     on_success: change
+<<<<<<< HEAD
     on_failure: always
+=======
+    on_failure: always
+>>>>>>> 43e4c89 (Change email notifiactions settings)
