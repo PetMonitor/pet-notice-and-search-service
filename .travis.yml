@@ -1,7 +1,7 @@
 language: python
 # install dependencies
 install:
-  - pip install requirements.txt
+  - pip3 install -r requirements.txt
 # run tests
 script:
   - pytest src/test
