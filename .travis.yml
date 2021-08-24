@@ -5,3 +5,9 @@ install:
 # run tests
 script:
   - pytest src/test
+notifications:
+  email:
+    recipients:
+      - mmariotti@fi.uba.ar
+    on_success: change
+    on_failure: always
