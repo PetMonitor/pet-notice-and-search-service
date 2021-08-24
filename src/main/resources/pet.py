@@ -28,8 +28,7 @@ class PetSex(Enum):
 
 # Fields returned by the src for the Pet resource
 pet_fields = {
-    'petId': fields.String(attribute='uuid'),
-    '_ref': fields.String,
+    'uuid': fields.String,
     'userId': fields.String,
     'type': fields.String,
     'name': fields.String,
@@ -63,6 +62,7 @@ class UserPets(Resource):
             print("Issue GET to " + userPetsURL)
             response = requests.get(userPetsURL)
             if response:
+                print("Response was {}".format(response.json()))
                 response.raise_for_status()
                 return response.json(), HTTPStatus.OK
             return "No pets found for user with id {}".format(userId), HTTPStatus.NOT_FOUND
