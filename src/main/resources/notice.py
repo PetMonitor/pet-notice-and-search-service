@@ -16,22 +16,8 @@ class NoticeType(Enum):
     STOLEN = auto()
     FOR_ADOPTION = auto()
 
-
-# Fields returned by the src for the Notice resource
-"""
 notice_fields = {
-    'id': fields.String,
-    'noticeType': fields.String,
-    'eventLocation': fields.List(),
-    'description': fields.String,
-    'eventTimestamp': fields.Float,
-    'userId': fields.String,
-    'petId': fields.String
-}
-"""
-
-notice_fields = {
-    'id': fields.String(attribute='uuid'),
+    'noticeId': fields.String(attribute='uuid'),
     'noticeType': fields.String,
     'description': fields.String,
     'eventTimestamp': fields.String,
@@ -98,7 +84,6 @@ class UserNotices(Resource):
             args = self.create_args.parse_args()
             newNotice = {
               'uuid': uuid.uuid4(),
-              '_ref': uuid.uuid4(),
               'noticeType': args['noticeType'],
               'eventLocation': args['eventLocation'],
               'description': args['description'],
@@ -123,7 +108,6 @@ class UserNotice(Resource):
     def __init__(self):
         # Argument parser for Notice update's JSON body
         self.update_args = _create_notice_request_parser()
-        self.update_args.add_argument("_ref", type=str, help="_ref hash is required", required=False)
         super(UserNotice, self).__init__()
 
     @marshal_with(notice_fields)
@@ -157,7 +141,6 @@ class UserNotice(Resource):
             print("Issue PUT to " + userNoticeByIdURL)
             args = self.update_args.parse_args()
             updatedNotice = {
-                '_ref': uuid.uuid4(),
                 'noticeType': args['noticeType'],
                 'eventLocation': args['eventLocation'],
                 'description': args['description'],
