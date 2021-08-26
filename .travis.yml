@@ -4,7 +4,7 @@ install:
   - pip3 install -r requirements.txt
 # run tests
 script:
-  - pytest src/test
+  - pytest src/test -vv
 notifications:
   email:
     recipients:

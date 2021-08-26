@@ -1,5 +1,7 @@
 # Pet notice and search service
 
+[![Build Status](https://app.travis-ci.com/PetMonitor/pet-notice-and-search-service.svg?branch=main)](https://app.travis-ci.com/PetMonitor/pet-notice-and-search-service)
+
 Server that will provide the API endpoints to handle pet similarity searches, along with all the operations concerning the notices.
 
 ## Install dependencies required to run the project

@@ -28,7 +28,7 @@ class PetSex(Enum):
 
 # Fields returned by the src for the Pet resource
 pet_fields = {
-    'uuid': fields.String,
+    'petId': fields.String(attribute='uuid'),
     'userId': fields.String,
     'type': fields.String,
     'name': fields.String,
@@ -82,7 +82,6 @@ class UserPets(Resource):
             # Create the vector here??? or when creating a notice?
             newPet = {
                 'uuid': uuid.uuid4(),
-                '_ref': uuid.uuid4(),
                 'userId': userId,
                 'type': args['type'],
                 'name': args['name'],
@@ -113,7 +112,6 @@ class UserPet(Resource):
     def __init__(self):
         # Argument parser for Pet update's JSON body
         self.update_args = _create_pet_request_parser()
-        self.update_args.add_argument("_ref", type=str, help="_ref hash is required", required=False)
         super(UserPet, self).__init__()
 
     @marshal_with(pet_fields)
@@ -147,8 +145,8 @@ class UserPet(Resource):
             petURL = DATABASE_SERVER_URL + "/users/" + userId + "/pets/" + petId
             print("Issue PUT to " + petURL)
             args = self.update_args.parse_args()
-            #TODO: modify this to first get the pet and then
-            #update only provided fields
+            # TODO: modify this to first get the pet and then
+            # update only provided fields
             updatedPet = {
                     'uuid': petId,
                     'userId': args['userId'],
@@ -197,7 +195,6 @@ class UserPet(Resource):
 """
 Similar pet search resource.
 """
-
 class SimilarPets(Resource):
 
     @marshal_with(pet_fields)
@@ -207,7 +204,7 @@ class SimilarPets(Resource):
         """
         # TODO: Request to server
         return {
-            "pets": [list(user_pets.values()) for user_pets in pets_db.values()]
+            "pets": []
         }, HTTPStatus.OK
 
 
