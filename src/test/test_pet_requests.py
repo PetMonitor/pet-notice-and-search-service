@@ -5,6 +5,7 @@ from src.main.resources.pet import UserPet, UserPets
 
 TEST_USER = {
     "uuid": "123e4567-e89b-12d3-a456-426614174000",
+    "_ref": "e6ebed0b-803c-43be-baaf-d370bc4e07f0",
     "username": "TerryPratchett",
     "email": "terrypratchett@discworld.com"
 }
@@ -12,6 +13,7 @@ TEST_USER = {
 TEST_PETS = [
     {
         "uuid": "123e4567-e89b-12d3-a456-426614174001",
+        "_ref": "578ac850-27d1-4e6e-8cb0-d0bd7219a69d",
         "userId": "123e4567-e89b-12d3-a456-426614174000",
         "type": "DOG",
         "name": "firulais",
@@ -28,6 +30,7 @@ TEST_PETS = [
     },
     {
         "uuid": "123e4567-e89b-12d3-a456-426614174003",
+        "_ref": "08ea7708-204e-4836-bd49-5f869e731971",
         "userId": "123e4567-e89b-12d3-a456-426614174000",
         "type": "CAT",
         "name": "yuli",
@@ -47,6 +50,7 @@ TEST_PETS = [
 TEST_PETS_OUTPUT = [
     {
         "petId": "123e4567-e89b-12d3-a456-426614174001",
+        "_ref": "578ac850-27d1-4e6e-8cb0-d0bd7219a69d",
         "userId": "123e4567-e89b-12d3-a456-426614174000",
         "type": "DOG",
         "name": "firulais",
@@ -63,6 +67,7 @@ TEST_PETS_OUTPUT = [
     },
     {
         "petId": "123e4567-e89b-12d3-a456-426614174003",
+        "_ref": "08ea7708-204e-4836-bd49-5f869e731971",
         "userId": "123e4567-e89b-12d3-a456-426614174000",
         "type": "CAT",
         "name": "yuli",

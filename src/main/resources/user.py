@@ -2,23 +2,34 @@ import uuid
 import requests
 
 from os import getenv
-from enum import Enum, auto
 from http import HTTPStatus
-from flask_restful import fields, reqparse, Resource, marshal_with
+from cerberus import Validator
+
+from flask_restful import fields, request, Resource, marshal_with
 
 DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
 # Fields returned by the src for the User resource
 user_fields = {
     "userId": fields.String(attribute="uuid"),
+    "_ref": fields.String,
     "username": fields.String,
     "email": fields.String
 }
 
 class User(Resource):
+
+    USER_SCHEMA = {
+        "_ref": { "type": "string", "required": True },
+        "username": { "type": "string" },
+        "password": { "type": "string" },
+        "email": { "type": "string" }
+    }
+
     def __init__(self):
-        # Argument parser for Pet creation's JSON body
-        self.create_args = _create_user_request_parser()
+        # Argument validator for Pet creation's JSON body
+        self.arg_validator = Validator()
+        self.arg_validator.allow_unknown = False
         super(User, self).__init__()
 
     @marshal_with(user_fields)
@@ -46,16 +57,14 @@ class User(Resource):
         """
         try:
             updateUserURL = DATABASE_SERVER_URL + "/users/" + userId
-            args = self.create_args.parse_args()
-            #TODO: modify this to first get the user and then
-            #update only provided fields
-            modifiedUser = {
-                "username": args["username"],
-                "password": args["password"],
-                "email": args["email"]
-            }
             print("Issue PUT to " + updateUserURL)
-            response = requests.put(updateUserURL, data=modifiedUser)
+
+            updatedUser = request.get_json()
+            if not self.arg_validator.validate(updatedUser, User.USER_SCHEMA):
+                print("ERROR {}".format(self.arg_validator.errors))
+                return "Received invalid user for update {}: {}".format(updatedUser, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
+
+            response = requests.put(updateUserURL, data=updatedUser)
             if response:
                 response.raise_for_status()
                 return "Successfully updated {} records".format(response.json()), HTTPStatus.OK
@@ -81,9 +90,19 @@ class User(Resource):
 
 
 class Users(Resource):
+
+    USERS_SCHEMA = {
+        "uuid": { "type": "string", "required": True },
+        "_ref": { "type": "string", "required": True },
+        "username": { "type": "string", "required": True },
+        "password": { "type": "string", "required": True },
+        "email": { "type": "string" }
+    }
+
     def __init__(self):
-        # Argument parser for Pet creation's JSON body
-        self.create_args = _create_user_request_parser()
+        # Argument validator for Pet creation's JSON body
+        self.arg_validator = Validator()
+        self.arg_validator.allow_unknown = False
         super(Users, self).__init__()
 
     @marshal_with(user_fields)
@@ -110,13 +129,14 @@ class Users(Resource):
         Creates a new user profile.
         """
         try:
-            args = self.create_args.parse_args()
-            newUser = {
-                "uuid": uuid.uuid4(),
-                "username": args["username"],
-                "password": args["password"],
-                "email": args["email"]
-            }
+            newUser = request.get_json()
+            newUser["uuid"] = str(uuid.uuid4())
+            newUser["_ref"] = str(uuid.uuid4())
+
+            if not self.arg_validator.validate(newUser, Users.USERS_SCHEMA):
+                print("ERROR {}".format(self.arg_validator.errors))
+                return "Unable to create user, received invalid user {}: {}".format(newUser, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
+
             response = requests.post(DATABASE_SERVER_URL + "/users", data=newUser)
             if response:
                 response.raise_for_status()
@@ -125,11 +145,3 @@ class Users(Resource):
         except Exception as e:
             print("Failed to create user: {}", e)
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
-
-
-def _create_user_request_parser():
-    user_request_parser = reqparse.RequestParser()
-    user_request_parser.add_argument("username", type=str, help="A username is required", required=True)
-    user_request_parser.add_argument("password", type=str, help="The name of the pet is required", required=True)
-    user_request_parser.add_argument("email", type=str, required=False)
-    return user_request_parser

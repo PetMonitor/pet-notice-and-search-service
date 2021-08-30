@@ -1,6 +1,4 @@
-# Pet notice and search service
-
-[![Build Status](https://app.travis-ci.com/PetMonitor/pet-notice-and-search-service.svg?branch=main)](https://app.travis-ci.com/PetMonitor/pet-notice-and-search-service)
+# Pet notice and search service [![Build Status](https://app.travis-ci.com/PetMonitor/pet-notice-and-search-service.svg?branch=main)](https://app.travis-ci.com/PetMonitor/pet-notice-and-search-service)
 
 Server that will provide the API endpoints to handle pet similarity searches, along with all the operations concerning the notices.
 
@@ -25,3 +23,7 @@ The server contains a `requirements.txt` file in the root folder. That file decl
     > flask run
  
   The app should have started and be ready to receive requests at http://localhost:5000
+
+## Run tests locally
+
+   > pytest src/test -vv

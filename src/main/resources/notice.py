@@ -4,8 +4,9 @@ import requests
 from os import getenv
 from http import HTTPStatus
 from enum import Enum, auto
+from cerberus import Validator
 
-from flask_restful import fields, reqparse, Resource, marshal_with
+from flask_restful import fields, request, Resource, marshal_with
 
 DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
@@ -18,6 +19,7 @@ class NoticeType(Enum):
 
 notice_fields = {
     'noticeId': fields.String(attribute='uuid'),
+    '_ref': fields.String,
     'noticeType': fields.String,
     'description': fields.String,
     'eventTimestamp': fields.String,
@@ -50,9 +52,27 @@ class Notices(Resource):
 
 class UserNotices(Resource):
 
+    USER_NOTICES_SCHEMA = {
+        "uuid": { "type": "string", "required": True },
+        "_ref": { "type": "string", "required": True },
+        "petId": { "type": "string" },
+        "noticeType": { "type": "string" },
+        "eventLocation": { 
+            "type": "dict", 
+            "require_all": True,
+            "schema":{
+                "lat": { "type": "string" },
+                "long": { "type": "string" }
+            }
+        },
+        "description": { "type": "string" },
+        "eventTimestamp": { "type": "string" }
+    }
+
     def __init__(self):
         # Argument parser for Notice creation's JSON body
-        self.create_args = _create_notice_request_parser()
+        self.arg_validator = Validator()
+        self.arg_validator.allow_unknown = False
         super(UserNotices, self).__init__()
 
     @marshal_with(notice_fields)
@@ -81,18 +101,20 @@ class UserNotices(Resource):
         :returns the new notice.
         """
         try:
-            args = self.create_args.parse_args()
-            newNotice = {
-              'uuid': uuid.uuid4(),
-              'noticeType': args['noticeType'],
-              'eventLocation': args['eventLocation'],
-              'description': args['description'],
-              'eventTimestamp': args['eventTimestamp'],
-              'userId': userId,
-              'petId': args['petId']
-            }
             userNoticesURL = DATABASE_SERVER_URL + "/users/" + userId + "/notices"
             print("Issue POST to " + userNoticesURL)
+
+            newNotice = request.get_json()
+            newNotice["uuid"] = str(uuid.uuid4())
+            newNotice["_ref"] = str(uuid.uuid4())
+            if not self.arg_validator.validate(newNotice, UserNotices.USER_NOTICES_SCHEMA):
+                print("ERROR {}".format(self.arg_validator.errors))
+                return "Create notice failed, received invalid notice {}: {}".format(newNotice, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
+            
+            if ("eventLocation" in newNotice):
+                newNotice["eventLocationLat"] = newNotice["eventLocation"]["lat"]
+                newNotice["eventLocationLong"] = newNotice["eventLocation"]["long"]
+                del newNotice["eventLocation"]
             response = requests.post(userNoticesURL, data=newNotice)
             if response:
                 response.raise_for_status()
@@ -105,9 +127,26 @@ class UserNotices(Resource):
 
 class UserNotice(Resource):
 
+    USER_NOTICE_SCHEMA = {
+        "_ref": { "type": "string", "required": True },
+        "petId": { "type": "string" },
+        "noticeType": { "type": "string" },
+        "eventLocation": { 
+            "type": "dict", 
+            "require_all": True,
+            "schema":{
+                "lat": { "type": "string" },
+                "long": { "type": "string" }
+            }
+        },
+        "description": { "type": "string" },
+        "eventTimestamp": { "type": "string" }
+    }
+
     def __init__(self):
-        # Argument parser for Notice update's JSON body
-        self.update_args = _create_notice_request_parser()
+        # Argument validator for Notice update's JSON body
+        self.arg_validator = Validator()
+        self.arg_validator.allow_unknown = False
         super(UserNotice, self).__init__()
 
     @marshal_with(notice_fields)
@@ -139,24 +178,23 @@ class UserNotice(Resource):
         try:
             userNoticeByIdURL = DATABASE_SERVER_URL + "/users/" + userId + "/notices/" + noticeId
             print("Issue PUT to " + userNoticeByIdURL)
-            args = self.update_args.parse_args()
-            updatedNotice = {
-                'noticeType': args['noticeType'],
-                'eventLocation': args['eventLocation'],
-                'description': args['description'],
-                'eventTimestamp': args['eventTimestamp'],
-                'userId': userId,
-                'petId': args['petId']
-            }
-
+            updatedNotice = request.get_json()
+            if not self.arg_validator.validate(updatedNotice, UserNotice.USER_NOTICE_SCHEMA):
+                print("ERROR {}".format(self.arg_validator.errors))
+                return "Received invalid notice for update {}: {}".format(updatedNotice, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
+            
+            if ("eventLocation" in updatedNotice):
+                updatedNotice["eventLocationLat"] = updatedNotice["eventLocation"]["lat"]
+                updatedNotice["eventLocationLong"] = updatedNotice["eventLocation"]["long"]
+                del updatedNotice["eventLocation"]
             response = requests.put(userNoticeByIdURL, data=updatedNotice)
             if response:
                 response.raise_for_status()
                 return "Successfully updated {} records".format(response.json()[0]), HTTPStatus.OK
-            return "Received empy response from database server. Notice with id {} for user {} could not be updated.".format(noticeId, userId), HTTPStatus.INTERNAL_SERVER_ERROR
+            return "Received empty response from database server. Notice with id {} for user {} could not be updated.".format(noticeId, userId), HTTPStatus.INTERNAL_SERVER_ERROR
         except Exception as e:
             print("ERROR {}".format(e))
-            return e, HTTPStatus.INTERNAL_SERVER_ERROR    
+            return "ERROR {}".format(e), HTTPStatus.INTERNAL_SERVER_ERROR    
 
 
     def delete(self, userId, noticeId):
@@ -175,12 +213,3 @@ class UserNotice(Resource):
         except Exception as e:
             print("Failed to delete user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
-
-def _create_notice_request_parser():
-    notice_request_parser = reqparse.RequestParser()
-    notice_request_parser.add_argument("noticeType", type=str, help="The type of notice is required", required=False)
-    notice_request_parser.add_argument("eventLocation", type=list, help="The location (latitude and longitude coordinates) of the reported event is required", required=False)
-    notice_request_parser.add_argument("description", type=str, default='')
-    notice_request_parser.add_argument("eventTimestamp", type=str, help="The date and hour in which the reported event occurred is required", required=False)
-    notice_request_parser.add_argument("petId", type=str, help="The reported pet is required", required=False)
-    return notice_request_parser

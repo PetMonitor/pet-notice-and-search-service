@@ -7,12 +7,14 @@ DATABASE_URL = "http://127.0.0.1:8000/users"
 
 TEST_USERS = [{
     "uuid": "123e4567-e89b-12d3-a456-426614174000",
+    "_ref": "e6ebed0b-803c-43be-baaf-d370bc4e07f0",
     "username": "TerryPratchett",
     "email": "terrypratchett@discworld.com"
 }]
 
 TEST_USERS_OUTPUT = [{
     "userId": "123e4567-e89b-12d3-a456-426614174000",
+    "_ref": "e6ebed0b-803c-43be-baaf-d370bc4e07f0",
     "username": "TerryPratchett",
     "email": "terrypratchett@discworld.com"
 }]

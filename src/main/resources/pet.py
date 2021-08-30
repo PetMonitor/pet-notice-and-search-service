@@ -4,7 +4,8 @@ import requests
 from os import getenv
 from enum import Enum, auto
 from http import HTTPStatus
-from flask_restful import fields, reqparse, Resource, marshal_with
+from cerberus import Validator
+from flask_restful import fields, request, Resource, marshal_with
 
 DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
@@ -27,8 +28,10 @@ class PetSex(Enum):
     FEMALE = auto()
 
 # Fields returned by the src for the Pet resource
+photo_fields = {'photoId': fields.String, 'photoContent': fields.String}
 pet_fields = {
     'petId': fields.String(attribute='uuid'),
+    '_ref': fields.String,
     'userId': fields.String,
     'type': fields.String,
     'name': fields.String,
@@ -41,14 +44,35 @@ pet_fields = {
     'age': fields.Integer,
     'sex': fields.String,
     'description': fields.String,
-    'photos': fields.List(cls_or_instance=fields.String),
+    'photos': fields.List(fields.Nested(photo_fields))
 }
 
 class UserPets(Resource):
 
+    USER_PETS_SCHEMA = {
+        "uuid": { "type": "string", "required": True },
+        "_ref": { "type": "string", "required": True },
+        "type": { "type": "string", "required": True },
+        "name": { "type": "string", "required": True },
+        "furColor": { "type": "string" },
+        "rightEyeColor": { "type": "string" },
+        "leftEyeColor": { "type": "string" },
+        "size": { "type": "string", "required": True },
+        "age": { "type": "integer" },
+        "lifeStage": { "type": "string" },
+        "sex": { "type": "string", "required": True },
+        "breed": { "type": "string" },
+        "description": { "type": "string" },
+        "photos": { 
+            "type": "list",
+            "schema": { "type": "string" }
+        }
+    }
+
     def __init__(self):
-        # Argument parser for Pet creation's JSON body
-        self.create_args = _create_pet_request_parser()
+        # Argument validator for Pet creation's JSON body
+        self.arg_validator = Validator()
+        self.arg_validator.allow_unknown = False
         super(UserPets, self).__init__()
 
     @marshal_with(pet_fields)
@@ -78,26 +102,17 @@ class UserPets(Resource):
         :returns the new pet.
         """
         try:
-            args = self.create_args.parse_args()
-            # Create the vector here??? or when creating a notice?
-            newPet = {
-                'uuid': uuid.uuid4(),
-                'userId': userId,
-                'type': args['type'],
-                'name': args['name'],
-                'furColor': args['furColor'],
-                'rightEyeColor': args['rightEyeColor'],
-                'leftEyeColor': args['leftEyeColor'],
-                'size': args['size'],
-                'lifeStage': args['lifeStage'],
-                'age': args['age'],
-                'sex': args['sex'] ,
-                'breed': args['breed'] ,
-                'description': args['description'] ,
-                'photos': args['photos']
-            }
+            # Create the vector here??? or when creating a notice?            
             userPetsURL = DATABASE_SERVER_URL + "/users/" + userId + "/pets"
             print("Issue POST to " + userPetsURL)
+
+            newPet = request.get_json()
+            newPet["uuid"] = str(uuid.uuid4())
+            newPet["_ref"] = str(uuid.uuid4())
+            if not self.arg_validator.validate(newPet, UserPets.USER_PETS_SCHEMA):
+                print("ERROR {}".format(self.arg_validator.errors))
+                return "Create pet failed, received invalid pet object {}: {}".format(newPet, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
+
             response = requests.post(userPetsURL, data=newPet)
             if response:
                 response.raise_for_status()
@@ -109,9 +124,26 @@ class UserPets(Resource):
 
 class UserPet(Resource):
 
+    USER_PET_SCHEMA = {
+        "_ref": { "type": "string", "required": True },
+        "userId": { "type": "string" },
+        "type": { "type": "string" },
+        "name": { "type": "string" },
+        "furColor": { "type": "string" },
+        "rightEyeColor": { "type": "string" },
+        "leftEyeColor": { "type": "string" },
+        "size": { "type": "string" },
+        "age": { "type": "integer" },
+        "lifeStage": { "type": "string" },
+        "sex": { "type": "string" },
+        "breed": { "type": "string" },
+        "description": { "type": "string" }
+    }
+
     def __init__(self):
-        # Argument parser for Pet update's JSON body
-        self.update_args = _create_pet_request_parser()
+        # Argument validator for Pet update's JSON body
+        self.arg_validator = Validator()
+        self.arg_validator.allow_unknown = False
         super(UserPet, self).__init__()
 
     @marshal_with(pet_fields)
@@ -144,25 +176,11 @@ class UserPet(Resource):
         try:
             petURL = DATABASE_SERVER_URL + "/users/" + userId + "/pets/" + petId
             print("Issue PUT to " + petURL)
-            args = self.update_args.parse_args()
-            # TODO: modify this to first get the pet and then
-            # update only provided fields
-            updatedPet = {
-                    'uuid': petId,
-                    'userId': args['userId'],
-                    'type': args['type'],
-                    'name': args['name'],
-                    'furColor': args['furColor'],
-                    'rightEyeColor': args['rightEyeColor'],
-                    'leftEyeColor': args['leftEyeColor'],
-                    'size': args['size'],
-                    'lifeStage': args['lifeStage'],
-                    'age': args['age'],
-                    'sex': args['sex'],
-                    'breed': args['breed'],
-                    'description': args['description'],
-                    'photos': args['photos']
-                }
+
+            updatedPet = request.get_json()
+            if not self.arg_validator.validate(updatedPet, UserPet.USER_PET_SCHEMA):
+                print("ERROR {}".format(self.arg_validator.errors))
+                return "Received invalid pet for update {}: {}".format(updatedPet, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
 
             response = requests.put(petURL, data=updatedPet)
             if response:
@@ -206,21 +224,3 @@ class SimilarPets(Resource):
         return {
             "pets": []
         }, HTTPStatus.OK
-
-
-def _create_pet_request_parser():
-    pet_request_parser = reqparse.RequestParser()
-    pet_request_parser.add_argument("type", type=str, help="The type of pet is required", required=False)
-    pet_request_parser.add_argument("name", type=str, help="The name of the pet is required", required=False)
-    pet_request_parser.add_argument("furColor", type=str, help="The fur color field is required", required=False)
-    pet_request_parser.add_argument("rightEyeColor", type=str, help="The eyes color field is required", required=False)
-    pet_request_parser.add_argument("leftEyeColor", type=str, help="The eyes color field is required", required=False)
-    pet_request_parser.add_argument("size", type=str, help="The size of the pet is required", required=False)
-    pet_request_parser.add_argument("lifeStage", type=str, help="The life stage of the pet is required", required=False)
-    pet_request_parser.add_argument("age", type=int, required=False)
-    pet_request_parser.add_argument("sex", type=str, help="The sex of the pet is required", required=False)
-    pet_request_parser.add_argument("breed", type=str, help="The breed of the pet is required", required=False)
-    pet_request_parser.add_argument("description", type=str, default='')
-    pet_request_parser.add_argument("photos", type=str, help="The images of the pet are required", required=False) 
-    pet_request_parser.add_argument("userId", type=str, help="The owner of the pet is required", required=False)
-    return pet_request_parser

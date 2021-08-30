@@ -5,6 +5,7 @@ from src.main.resources.notice import Notices, UserNotice, UserNotices
 
 TEST_USER = {
     "uuid": "123e4567-e89b-12d3-a456-426614174000",
+    "_ref": "e6ebed0b-803c-43be-baaf-d370bc4e07f0",
     "username": "TerryPratchett",
     "email": "terrypratchett@discworld.com"
 }
@@ -12,6 +13,7 @@ TEST_USER = {
 TEST_NOTICES = [
       {
         "uuid": "123e4567-e89b-12d3-a456-426614175555",
+        "_ref": "447b86ea-b1c7-4e2a-a167-7542dcfbfd24",
         "petId": "123e4567-e89b-12d3-a456-426614174001",
         "userId": "123e4567-e89b-12d3-a456-426614174000",
         "noticeType": "LOST",
@@ -22,6 +24,7 @@ TEST_NOTICES = [
       },
       {
         "uuid": "123e4567-e89b-12d3-a456-426614176666",
+        "_ref": "05783c09-e5bb-4a47-8978-8c61b93ca545",
         "petId": "123e4567-e89b-12d3-a456-426614174002",
         "userId": "123e4567-e89b-12d3-a456-426614175000",
         "noticeType": "FOUND",
@@ -35,6 +38,7 @@ TEST_NOTICES = [
 TEST_NOTICES_OUTPUT = [
       {
         "noticeId": "123e4567-e89b-12d3-a456-426614175555",
+        "_ref": "447b86ea-b1c7-4e2a-a167-7542dcfbfd24",
         "petId": "123e4567-e89b-12d3-a456-426614174001",
         "userId": "123e4567-e89b-12d3-a456-426614174000",
         "noticeType": "LOST",
@@ -44,6 +48,7 @@ TEST_NOTICES_OUTPUT = [
       },
       {
         "noticeId": "123e4567-e89b-12d3-a456-426614176666",
+        "_ref": "05783c09-e5bb-4a47-8978-8c61b93ca545",
         "petId": "123e4567-e89b-12d3-a456-426614174002",
         "userId": "123e4567-e89b-12d3-a456-426614175000",
         "noticeType": "FOUND",

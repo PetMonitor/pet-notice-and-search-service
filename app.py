@@ -21,5 +21,9 @@ api.add_resource(UserNotices, '/users/<string:userId>/notices', methods=['GET', 
 api.add_resource(Notices, '/notices', methods=['GET'])
 api.add_resource(SimilarPets, '/similar-pets', methods=['POST'])
 
+#TODO: add endpoint to CREATE / DELETE PET PHOTOS
+# api.add_resource(UserPet, '/users/<string:userId>/pets/<string:petId>/photos', methods=['POST'])
+# api.add_resource(UserPet, '/users/<string:userId>/pets/<string:petId>/photos/:photoId', methods=['DELETE'])
+
 if __name__ == '__main__':
     app.run()
