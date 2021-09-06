@@ -67,7 +67,7 @@ class User(Resource):
             response = requests.put(updateUserURL, data=updatedUser)
             if response:
                 response.raise_for_status()
-                return "Successfully updated {} records".format(response.json()), HTTPStatus.OK
+                return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
         except Exception as e:
             print("Failed to update user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
@@ -83,7 +83,7 @@ class User(Resource):
             response = requests.delete(deleteUserURL)
             if response:
                 response.raise_for_status()
-                return "Successfully deleted {} records".format(response.json()), HTTPStatus.OK
+                return "Successfully deleted {} records".format(response.json()['deletedCount']), HTTPStatus.OK
         except Exception as e:
             print("Failed to delete user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
