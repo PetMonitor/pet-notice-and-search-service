@@ -44,7 +44,7 @@ class UserLogin(Resource):
                 print("ERROR {}".format(self.arg_validator.errors))
                 return "Unable to login user, received invalid login data {}: {}".format(userCredentials, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
             
-            print("Session {}".format(session))
+            # print("Session {}".format(session))
 
             if userCredentials["username"] in session:
                 print("User {} already logged in.".format(userCredentials["username"]))
@@ -79,17 +79,21 @@ class UserLogout(Resource):
         self.arg_validator.allow_unknown = False
         super(UserLogout, self).__init__()
 
-    def post(self, userId):
+    def post(self):
         """
-        Login endpoint for users.
+        Logout endpoint for users.
         """
-        # Validate request
-        # Validate credentials against database service
-        # Return a session token (if the transaction is in the database service maybe generate it there)
         try:
             print("User logout")
-            if userId in  session:
-                session.pop(userId)
+            #TODO: I ask for the username to be sent because
+            # that is they key used to store the data session.
+            # If username cannot be sent by the client, then
+            # this will need to be changed to iterate session
+            # and look for the client id
+            username = request.get_json()
+            if username["username"] in session:
+                session.pop(username["username"])
+                print("Successfully logged out user {}".format(username["username"]))
                 return "Logout success", HTTPStatus.OK
             return "User session unavailable", HTTPStatus.NOT_FOUND
         except Exception as e:
