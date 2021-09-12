@@ -19,7 +19,7 @@ The server contains a `requirements.txt` file in the root folder. That file decl
 
   Run the app:
 
-    > export FLASK_APP=app.py
+    > export FLASK_APP=src.main.app.py
     > flask run
  
   The app should have started and be ready to receive requests at http://localhost:5000

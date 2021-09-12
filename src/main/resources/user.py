@@ -7,6 +7,8 @@ from cerberus import Validator
 
 from flask_restful import fields, request, Resource, marshal_with
 
+from src.main.utils.requestAuthorizer import RequestAuthorizer
+
 DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
 # Fields returned by the src for the User resource
@@ -39,6 +41,8 @@ class User(Resource):
         :param userId identifier of the user.
         """
         try:
+            if not RequestAuthorizer.authenticateRequester(userId, request):
+                return "Request unauthorized: user session not found", HTTPStatus.UNAUTHORIZED
             usersByIdURL = DATABASE_SERVER_URL + "/users/" + userId
             print("Issue GET to " + usersByIdURL)
             response = requests.get(usersByIdURL)
@@ -56,6 +60,8 @@ class User(Resource):
         :param userId identifier of the user.
         """
         try:
+            if not RequestAuthorizer.authenticateRequester(userId, request):
+                return "Request unauthorized: user session not found", HTTPStatus.UNAUTHORIZED
             updateUserURL = DATABASE_SERVER_URL + "/users/" + userId
             print("Issue PUT to " + updateUserURL)
 
@@ -78,6 +84,8 @@ class User(Resource):
         :param userId identifier of the user.
         """
         try:
+            if not RequestAuthorizer.authenticateRequester(userId, request):
+                return "Request unauthorized: user session not found", HTTPStatus.UNAUTHORIZED
             deleteUserURL = DATABASE_SERVER_URL + "/users/" + userId
             print("Issue DELETE to " + deleteUserURL)
             response = requests.delete(deleteUserURL)
@@ -111,6 +119,9 @@ class Users(Resource):
         Retrieves a list of all registered users.
         """
         try:
+            print("Get users")
+            if not RequestAuthorizer.isRequestAuthorized(request):
+                return "Request unauthorized: user session not found", HTTPStatus.UNAUTHORIZED
             allUsersURL = DATABASE_SERVER_URL + "/users"
             print("Issue GET to " + allUsersURL)
             response = requests.get(allUsersURL)

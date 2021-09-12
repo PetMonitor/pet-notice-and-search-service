@@ -4,6 +4,8 @@ import requests
 from os import getenv
 from http import HTTPStatus
 from cerberus import Validator
+from src.main.utils.jwtGenerator import JwtGenerator
+from src.main.utils.requestAuthorizer import RequestAuthorizer
 
 from flask_restful import fields, request, Resource, marshal_with
 from flask import session
@@ -44,28 +46,23 @@ class UserLogin(Resource):
                 print("ERROR {}".format(self.arg_validator.errors))
                 return "Unable to login user, received invalid login data {}: {}".format(userCredentials, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
             
-            # print("Session {}".format(session))
-
-            if userCredentials["username"] in session:
-                print("User {} already logged in.".format(userCredentials["username"]))
-                return session[userCredentials["username"]], HTTPStatus.OK    
-            
-            # Validate credentials
+            # Validate user credentials
             response = requests.post(DATABASE_SERVER_URL + "/users/credentialValidation", data=userCredentials)
             print("Received response {}".format(response))
 
-            if response == None:
+            if not response:
                 return "Received empty response from database server. User creation failed.", HTTPStatus.INTERNAL_SERVER_ERROR
 
+            #TODO: no se por que, esta validacion se la pasa y direcamente
+            #hace el raise status
             if response.status_code == HTTPStatus.UNAUTHORIZED.value:
                 return "Invalid credentials: invalid username or password provided", HTTPStatus.UNAUTHORIZED
             
             response.raise_for_status() 
             user = response.json()
             
-            # TODO: generate a session token
-            user["sessionToken"] = "someSessionToken"
-            session[user["username"]] = user
+            user["sessionToken"] = JwtGenerator.generateToken(user)
+            session[user["sessionToken"]] = user
             return user, HTTPStatus.OK
         except Exception as e:
             print("User login failed: {}".format(str(e)))
@@ -85,17 +82,12 @@ class UserLogout(Resource):
         """
         try:
             print("User logout")
-            #TODO: I ask for the username to be sent because
-            # that is they key used to store the data session.
-            # If username cannot be sent by the client, then
-            # this will need to be changed to iterate session
-            # and look for the client id
-            username = request.get_json()
-            if username["username"] in session:
-                session.pop(username["username"])
-                print("Successfully logged out user {}".format(username["username"]))
-                return "Logout success", HTTPStatus.OK
-            return "User session unavailable", HTTPStatus.NOT_FOUND
+            if not RequestAuthorizer.isRequestAuthorized(request):
+                return "Request unauthorized: user session not found", HTTPStatus.UNAUTHORIZED
+            authBearer = request.headers.get('Authorization')
+            (_, sessionToken) = authBearer.split(' ')
+            session.pop(sessionToken)
+            return "Logout success", HTTPStatus.OK
         except Exception as e:
             print("User logout failed: {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
