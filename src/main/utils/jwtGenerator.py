@@ -12,4 +12,4 @@ class JwtGenerator():
 
     @classmethod
     def decipherToken(cls, encodedJwtToken):
-        return jwt.decode(encodedJwtToken, JwtGenerator.SECRET_KEY, algorithm=JwtGenerator.ALGORITHM)
+        return jwt.decode(encodedJwtToken, JwtGenerator.SECRET_KEY, algorithms=[JwtGenerator.ALGORITHM])

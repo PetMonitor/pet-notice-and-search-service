@@ -31,5 +31,5 @@ class RequestAuthorizer():
                 return False
             return JwtGenerator.decipherToken(sessionToken)['uuid'] == userId
         except Exception as e:
-            print("Error authenticating user sender {}".format(e))
+            print("Error authenticating user: {}".format(e))
             return False
