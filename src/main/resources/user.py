@@ -121,7 +121,18 @@ class Users(Resource):
                     "sex": { "type": "string" },
                     "breed": { "type": "string" },
                     "description": { "type": "string" },
-                    "photos": {"type": "list", "required": False, "schema": {"type": "string"}}
+                    "photos": {
+                        "type": "list", 
+                        "required": False, 
+                        "schema": {
+                            "type": "dict",
+                            "schema": {
+                                "uuid": { "type": "string", "required": True },
+                                "photo": { "type": "string", "required": True },
+                            }
+
+                        }
+                    }
                 }
         }}
     }
@@ -164,15 +175,23 @@ class Users(Resource):
             newUser["_ref"] = str(uuid.uuid4())
 
             if "pets" in newUser:
-                for i in range(len(newUser["pets"])):
-                    newUser["pets"][i]["uuid"] = str(uuid.uuid4())
-                    newUser["pets"][i]["_ref"] = str(uuid.uuid4())
+                for pet in newUser["pets"]:
+                    pet["uuid"] = str(uuid.uuid4())
+                    pet["_ref"] = str(uuid.uuid4())
+
+                    petPhotos = []
+                    # photos are sent as an array from the app
+                    for photo in pet["photos"]:
+                        petPhotos.append({ "uuid": str(uuid.uuid4()), "photo": photo })
+
+                    pet["photos"] = petPhotos
+                
                 # print('Received user with pets {}'.format(newUser))
             if not self.arg_validator.validate(newUser, Users.USERS_SCHEMA):
                 print("ERROR {}".format(self.arg_validator.errors))
                 return "Unable to create user, received invalid user {}: {}".format(newUser, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
 
-            print('Creating user {}'.format(newUser))
+            # print('Creating user {}'.format(newUser))
             response = requests.post(DATABASE_SERVER_URL + "/users", headers={'Content-Type':'application/json'}, data=json.dumps(newUser))
             if response:
                 response.raise_for_status()
