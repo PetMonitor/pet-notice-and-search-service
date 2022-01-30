@@ -1,0 +1,13 @@
+language: python
+# install dependencies
+install:
+  - pip3 install -r requirements.txt
+# run tests
+script:
+  - pytest src/test -vv
+notifications:
+  email:
+    recipients:
+      - mmariotti@fi.uba.ar
+    on_success: change
+    on_failure: always
