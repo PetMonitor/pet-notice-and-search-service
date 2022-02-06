@@ -16,20 +16,30 @@ user_fields = {
     "userId": fields.String(attribute="uuid"),
     "_ref": fields.String,
     "username": fields.String,
-    "email": fields.String
+    "email": fields.String,
+    "name": fields.String,
+    "phoneNumber": fields.String,
+    "alertsActivated": fields.Boolean,
+    "alertRadius": fields.String,
+    "profilePicture": fields.String
 }
 
 class User(Resource):
 
     USER_SCHEMA = {
         "_ref": { "type": "string", "required": True },
-        "username": { "type": "string" },
-        "password": { "type": "string" },
-        "email": { "type": "string" }
+        "username": { "type": "string", "required": False },
+        "password": { "type": "string", "required": False },
+        "email": { "type": "string", "required": False },
+        "name": { "type": "string", "required": False, "nullable": True },
+        "phoneNumber": { "type": "string", "required": False, "nullable": True },
+        "alertsActivated": { "type": "boolean", "required": False },
+        "alertRadius": { "type": "string", "required": False },
+        "profilePicture": { "type": "string", "required": False, "nullable": True }
     }
 
     def __init__(self):
-        # Argument validator for Pet creation's JSON body
+        # Argument validator for User methods' JSON body
         self.arg_validator = Validator()
         self.arg_validator.allow_unknown = False
         super(User, self).__init__()
@@ -67,7 +77,7 @@ class User(Resource):
 
             updatedUser = request.get_json()
             if not self.arg_validator.validate(updatedUser, User.USER_SCHEMA):
-                print("ERROR {}".format(self.arg_validator.errors))
+                print("VALIDATION ERROR: {}".format(self.arg_validator.errors))
                 return "Received invalid user for update {}: {}".format(updatedUser, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
 
             response = requests.put(updateUserURL, data=updatedUser)
@@ -96,6 +106,39 @@ class User(Resource):
             print("Failed to delete user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
 
+class UserPwd(Resource):
+
+    USER_PWD_SCHEMA = {
+        "_ref": { "type": "string", "required": True },
+        "oldPassword": { "type": "string", "required": True },
+        "newPassword": { "type": "string", "required": True }
+    }
+
+    def __init__(self):
+        # Argument validator for UserPwd methods' body
+        self.arg_validator = Validator()
+        self.arg_validator.allow_unknown = False
+        super(UserPwd, self).__init__()
+
+    def put(self, userId):
+        try:
+            if not RequestAuthorizer.authenticateRequester(userId, request):
+                return "Request unauthorized: user session not found", HTTPStatus.UNAUTHORIZED
+            updateUserURL = DATABASE_SERVER_URL + "/users/" + userId + "/password"
+            print("Issue PUT to " + updateUserURL)
+
+            updatedUserPwd = request.get_json()
+            if not self.arg_validator.validate(updatedUserPwd, UserPwd.USER_PWD_SCHEMA):
+                print("VALIDATION ERROR: {}".format(self.arg_validator.errors))
+                return "Received invalid user password for update".format(self.arg_validator.errors), HTTPStatus.BAD_REQUEST
+
+            response = requests.put(updateUserURL, data=updatedUserPwd)
+            if response:
+                response.raise_for_status()
+                return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
+        except Exception as e:
+            print("Failed to update user {}: {}".format(userId, e))
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR        
 
 class Users(Resource):
 
