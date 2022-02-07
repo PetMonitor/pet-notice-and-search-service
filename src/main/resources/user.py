@@ -20,7 +20,7 @@ user_fields = {
     "name": fields.String,
     "phoneNumber": fields.String,
     "alertsActivated": fields.Boolean,
-    "alertRadius": fields.String,
+    "alertRadius": fields.Integer,
     "profilePicture": fields.String
 }
 
@@ -34,7 +34,7 @@ class User(Resource):
         "name": { "type": "string", "required": False, "nullable": True },
         "phoneNumber": { "type": "string", "required": False, "nullable": True },
         "alertsActivated": { "type": "boolean", "required": False },
-        "alertRadius": { "type": "string", "required": False },
+        "alertRadius": { "type": "integer", "required": False },
         "profilePicture": { "type": "string", "required": False, "nullable": True }
     }
 
