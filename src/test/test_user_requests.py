@@ -11,14 +11,24 @@ TEST_USERS = [{
     "uuid": "123e4567-e89b-12d3-a456-426614174000",
     "_ref": "e6ebed0b-803c-43be-baaf-d370bc4e07f0",
     "username": "TerryPratchett",
-    "email": "terrypratchett@discworld.com"
+    "email": "terrypratchett@discworld.com",
+    "name": "Terry Pratchett",
+    "phoneNumber": "222-000-666",
+    "profilePicture": None,
+    "alertsActivated": True,
+    "alertRadius": 1
 }]
 
 TEST_USERS_OUTPUT = [{
     "userId": "123e4567-e89b-12d3-a456-426614174000",
     "_ref": "e6ebed0b-803c-43be-baaf-d370bc4e07f0",
     "username": "TerryPratchett",
-    "email": "terrypratchett@discworld.com"
+    "email": "terrypratchett@discworld.com",
+    "name": "Terry Pratchett",
+    "phoneNumber": "222-000-666",
+    "profilePicture": None,
+    "alertsActivated": True,
+    "alertRadius": 1
 }]
 
 

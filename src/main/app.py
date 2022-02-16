@@ -3,7 +3,8 @@ from flask import Flask
 from flask_restful import Api
 from src.main.resources.notice import Notices, UserNotices, UserNotice
 from src.main.resources.pet import UserPet, UserPets, SimilarPets
-from src.main.resources.user import User, Users
+from src.main.resources.user import User, Users, UserPwd
+from src.main.resources.photo import Photo
 from src.main.resources.login import UserLogin, UserLogout
 
 app = Flask(__name__)
@@ -14,6 +15,7 @@ api = Api(app, prefix='/api/v0')
 # We define all the endpoints handled by this service
 api.add_resource(User, '/users/<string:userId>', methods=['GET', 'PUT', 'DELETE'])
 api.add_resource(Users, '/users', methods=['GET', 'POST'])
+api.add_resource(UserPwd, '/users/<string:userId>/password', methods=['PUT'])
 
 api.add_resource(UserLogin, '/users/login', methods=['POST'])
 api.add_resource(UserLogout, '/users/logout', methods=['POST'])
@@ -26,6 +28,9 @@ api.add_resource(UserNotices, '/users/<string:userId>/notices', methods=['GET', 
 
 api.add_resource(Notices, '/notices', methods=['GET'])
 api.add_resource(SimilarPets, '/similarPets', methods=['POST'])
+
+
+api.add_resource(Photo, '/photos/<string:photoId>', methods=['GET'])
 
 #TODO: add endpoint to CREATE / DELETE PET and USER PROFILE PHOTOS
 # api.add_resource(UserPet, '/users/<string:userId>/pets/<string:petId>/photos', methods=['POST'])
