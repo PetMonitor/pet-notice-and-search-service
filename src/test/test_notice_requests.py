@@ -39,7 +39,7 @@ TEST_NOTICES_OUTPUT = [
       {
         "noticeId": "123e4567-e89b-12d3-a456-426614175555",
         "_ref": "447b86ea-b1c7-4e2a-a167-7542dcfbfd24",
-        "petId": "123e4567-e89b-12d3-a456-426614174001",
+        "pet": {"id":"123e4567-e89b-12d3-a456-426614174001", "photo": None},
         "userId": "123e4567-e89b-12d3-a456-426614174000",
         "noticeType": "LOST",
         "eventLocation": {"lat":"123","long": "345"},
@@ -49,7 +49,7 @@ TEST_NOTICES_OUTPUT = [
       {
         "noticeId": "123e4567-e89b-12d3-a456-426614176666",
         "_ref": "05783c09-e5bb-4a47-8978-8c61b93ca545",
-        "petId": "123e4567-e89b-12d3-a456-426614174002",
+        "pet": {"id":"123e4567-e89b-12d3-a456-426614174002", "photo": None},
         "userId": "123e4567-e89b-12d3-a456-426614175000",
         "noticeType": "FOUND",
         "eventLocation": {"lat":"123","long": "345"},
