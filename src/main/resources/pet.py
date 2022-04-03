@@ -116,6 +116,13 @@ class UserPets(Resource):
             newPet = request.get_json()
             newPet["uuid"] = str(uuid.uuid4())
             newPet["_ref"] = str(uuid.uuid4())
+
+            petPhotos = []
+            # photos are sent as an array from the app
+            for photo in newPet["photos"]:
+                petPhotos.append({ "uuid": str(uuid.uuid4()), "photo": photo })
+
+            newPet["photos"] = petPhotos
             if not self.arg_validator.validate(newPet, UserPets.USER_PETS_SCHEMA):
                 print("ERROR {}".format(self.arg_validator.errors))
                 return "Create pet failed, received invalid pet object {}: {}".format(newPet, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
