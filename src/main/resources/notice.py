@@ -10,6 +10,7 @@ from flask_restful import fields, request, Resource, marshal_with
 
 DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
+
 class NoticeType(Enum):
     """ Defines the types of notices that can be created. """
     LOST = auto()
@@ -17,6 +18,8 @@ class NoticeType(Enum):
     STOLEN = auto()
     FOR_ADOPTION = auto()
 
+
+# Fields returned by the src for Notice resource
 notice_fields = {
     'noticeId': fields.String(attribute='uuid'),
     '_ref': fields.String,
@@ -24,11 +27,16 @@ notice_fields = {
     'description': fields.String,
     'eventTimestamp': fields.String,
     'userId': fields.String,
-    'petId': fields.String
+    'pet': {
+        'id': fields.String(attribute='petId'),
+        'photo': fields.List(fields.Integer, attribute='petPhoto.data')
+    },
+    'eventLocation': {
+        'lat': fields.String(attribute='eventLocationLat'),
+        'long': fields.String(attribute='eventLocationLong')
+    }
 }
-notice_fields['eventLocation'] = {}
-notice_fields['eventLocation']['lat'] = fields.String(attribute='eventLocationLat')
-notice_fields['eventLocation']['long'] = fields.String(attribute='eventLocationLong')
+
 
 class Notices(Resource):
 
@@ -60,7 +68,7 @@ class UserNotices(Resource):
         "eventLocation": { 
             "type": "dict", 
             "require_all": True,
-            "schema":{
+            "schema": {
                 "lat": { "type": "string" },
                 "long": { "type": "string" }
             }
@@ -111,7 +119,7 @@ class UserNotices(Resource):
                 print("ERROR {}".format(self.arg_validator.errors))
                 return "Create notice failed, received invalid notice {}: {}".format(newNotice, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
             
-            if ("eventLocation" in newNotice):
+            if "eventLocation" in newNotice:
                 newNotice["eventLocationLat"] = newNotice["eventLocation"]["lat"]
                 newNotice["eventLocationLong"] = newNotice["eventLocation"]["long"]
                 del newNotice["eventLocation"]
@@ -183,7 +191,7 @@ class UserNotice(Resource):
                 print("ERROR {}".format(self.arg_validator.errors))
                 return "Received invalid notice for update {}: {}".format(updatedNotice, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
             
-            if ("eventLocation" in updatedNotice):
+            if "eventLocation" in updatedNotice:
                 updatedNotice["eventLocationLat"] = updatedNotice["eventLocation"]["lat"]
                 updatedNotice["eventLocationLong"] = updatedNotice["eventLocation"]["long"]
                 del updatedNotice["eventLocation"]

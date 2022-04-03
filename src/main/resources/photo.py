@@ -8,6 +8,7 @@ from flask import send_file
 
 DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
+
 class Photo(Resource):
 
     def __init__(self):
@@ -32,4 +33,4 @@ class Photo(Resource):
             return "No photos found for with id {}".format(photoId), HTTPStatus.NOT_FOUND
         except Exception as e:
             print("ERROR {}".format(e))
-            return e, HTTPStatus.INTERNAL_SERVER_ERROR  
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR

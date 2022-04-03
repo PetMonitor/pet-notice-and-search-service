@@ -1,4 +1,3 @@
-import uuid
 import requests
 
 from os import getenv
@@ -12,7 +11,7 @@ from flask import session
 
 DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
-# Fields returned by the src for the User resource
+# Fields returned by the src for the UserLogin resource
 user_fields = {
     "userId": fields.String(attribute="uuid"),
     "_ref": fields.String,
@@ -20,6 +19,7 @@ user_fields = {
     "email": fields.String,
     "sessionToken": fields.String
 }
+
 
 class UserLogin(Resource):
 
