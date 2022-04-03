@@ -34,7 +34,7 @@ TEST_USERS_OUTPUT = [{
 
 """
 This mock classes are to override User and Users requests methods.
-With the @patch decorator it is posible to make request.get() return
+With the @patch decorator it is possible to make request.get() return
 the next fake object; so it can perform an url check and mutate
 to simulate different endpoints.
 """
