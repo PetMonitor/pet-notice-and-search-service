@@ -24,6 +24,7 @@ user_fields = {
     "profilePicture": fields.String
 }
 
+
 class User(Resource):
 
     USER_SCHEMA = {
@@ -106,6 +107,7 @@ class User(Resource):
             print("Failed to delete user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
 
+
 class UserPwd(Resource):
 
     USER_PWD_SCHEMA = {
@@ -139,6 +141,7 @@ class UserPwd(Resource):
         except Exception as e:
             print("Failed to update user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR        
+
 
 class Users(Resource):
 
@@ -235,7 +238,7 @@ class Users(Resource):
                 return "Unable to create user, received invalid user {}: {}".format(newUser, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
 
             # print('Creating user {}'.format(newUser))
-            response = requests.post(DATABASE_SERVER_URL + "/users", headers={'Content-Type':'application/json'}, data=json.dumps(newUser))
+            response = requests.post(DATABASE_SERVER_URL + "/users", headers={'Content-Type': 'application/json'}, data=json.dumps(newUser))
             if response:
                 response.raise_for_status()
                 return response.json(), HTTPStatus.CREATED

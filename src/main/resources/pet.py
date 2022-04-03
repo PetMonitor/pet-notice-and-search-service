@@ -9,26 +9,30 @@ from flask_restful import fields, request, Resource, marshal_with
 
 DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
+
 class PetType(Enum):
     DOG = auto()
     CAT = auto()
+
 
 class PetSize(Enum):
     SMALL = auto()
     MEDIUM = auto()
     LARGE = auto()
 
+
 class PetLifeStage(Enum):
     BABY = auto()
     ADULT = auto()
     SENIOR = auto()
 
+
 class PetSex(Enum):
     MALE = auto()
     FEMALE = auto()
 
+
 # Fields returned by the src for the Pet resource
-photo_fields = {'photoId': fields.String }
 pet_fields = {
     'petId': fields.String(attribute='uuid'),
     '_ref': fields.String,
@@ -44,8 +48,11 @@ pet_fields = {
     'age': fields.Integer,
     'sex': fields.String,
     'description': fields.String,
-    'photos': fields.List(fields.Nested(photo_fields))
+    'photos': fields.List(fields.Nested(
+        {'photoId': fields.String }
+    ))
 }
+
 
 class UserPets(Resource):
 
@@ -121,6 +128,7 @@ class UserPets(Resource):
         except Exception as e:
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR   
+
 
 class UserPet(Resource):
 
@@ -204,16 +212,16 @@ class UserPet(Resource):
             if response:
                 response.raise_for_status()
                 return "Correctly deleted {} records".format(response.json()), HTTPStatus.OK
-            return "Received empy response from database server. Pet with id {} not updated for user {}".format(petId, userId), HTTPStatus.INTERNAL_SERVER_ERROR            
+            return "Received empty response from database server. Pet with id {} not updated for user {}".format(petId, userId), HTTPStatus.INTERNAL_SERVER_ERROR
         except Exception as e:
             print("ERROR {}".format(e))
-            return e, HTTPStatus.INTERNAL_SERVER_ERROR      
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
-"""
-Similar pet search resource.
-"""
 class SimilarPets(Resource):
+    """
+    Similar pet search resource.
+    """
 
     @marshal_with(pet_fields)
     def post(self):
