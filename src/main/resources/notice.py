@@ -46,7 +46,7 @@ class Notices(Resource):
         Retrieves all the notices. 
         """
         try:
-            noticesURL = DATABASE_SERVER_URL + "/notices"
+            noticesURL = DATABASE_SERVER_URL + "/notices" + request.query_string.decode("utf-8")
             print("Issue GET to " + noticesURL)
             response = requests.get(noticesURL)
             if response:
