@@ -87,7 +87,7 @@ class UserNotices(Resource):
     def get(self, userId):
         """
         Retrieves all the notices created by a user.
-        :param user_id identifier of the user who owns the notices.
+        :param userId identifier of the user who owns the notices.
         """
         try:
             userNoticesURL = DATABASE_SERVER_URL + "/users/" + userId + "/notices"
@@ -105,7 +105,7 @@ class UserNotices(Resource):
     def post(self, userId):
         """
         Creates a notice from a user.
-        :param user_id identifier of the user who creates the notice.
+        :param userId identifier of the user who creates the notice.
         :returns the new notice.
         """
         try:
