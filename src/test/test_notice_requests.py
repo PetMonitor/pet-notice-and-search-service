@@ -1,6 +1,8 @@
 import json
 from http import HTTPStatus
-from src.main.resources.notice import Notices, UserNotice, UserNotices
+
+from src.main.app import app
+from src.main.resources.notice import UserNotice
 
 
 TEST_USER = {
@@ -65,17 +67,18 @@ RESPONSE_STATUS_IDX = 1
 DATABASE_URL = "http://127.0.0.1:8000"
 DATABASE_USER_NOTICES_URL = DATABASE_URL + "/users/" + TEST_USER["uuid"] + "/notices"
 
+
 def test_get_notices_returns_all_notices(requests_mock):
     requests_mock.get(DATABASE_URL + "/notices", json=TEST_NOTICES)
-    response = Notices().get()
-    responseBody = response[RESPONSE_BODY_IDX]
-    print("Response body {}".format(json.dumps(responseBody)))
+    c = app.test_client()
+    response = c.get('/api/v0/notices')
+    responseBody = response.json
 
-    # Verify response content 
+    # Verify response content
     assert len(responseBody) == len(TEST_NOTICES)
     for i in range(len(TEST_NOTICES)):
         assert json.dumps(responseBody[i], sort_keys=True) == json.dumps(TEST_NOTICES_OUTPUT[i], sort_keys=True)
-    assert response[RESPONSE_STATUS_IDX] == HTTPStatus.OK
+    assert response.status_code == HTTPStatus.OK
 
 
 def test_get_notice_by_id_returns_requested_notice(requests_mock):

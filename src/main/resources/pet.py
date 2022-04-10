@@ -72,8 +72,8 @@ class UserPets(Resource):
         "description": { "type": "string" },
         "photos": { 
             "type": "list",
-            "schema": { "type": "string" }
-        }
+        },
+        "isMyPet": { "type": "boolean" }
     }
 
     def __init__(self):
@@ -127,7 +127,7 @@ class UserPets(Resource):
                 print("ERROR {}".format(self.arg_validator.errors))
                 return "Create pet failed, received invalid pet object {}: {}".format(newPet, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
 
-            response = requests.post(userPetsURL, data=newPet)
+            response = requests.post(userPetsURL, json=newPet)
             if response:
                 response.raise_for_status()
                 return response.json(), HTTPStatus.CREATED
