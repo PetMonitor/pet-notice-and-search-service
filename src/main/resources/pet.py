@@ -72,7 +72,6 @@ class UserPets(Resource):
         "description": { "type": "string" },
         "photos": { 
             "type": "list",
-            # "schema": { "type": "string" }
         },
         "isMyPet": { "type": "boolean" }
     }
