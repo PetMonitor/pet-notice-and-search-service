@@ -14,14 +14,19 @@ The server contains a `requirements.txt` file in the root folder. That file decl
 
   Set up a python virtualenv and install dependencies:
   
+  Create virtual environment:
+
     > cd pet-notice-and-search-service
     > virtualenv venv
+
+  Activate virtual environment:
+  
     > source venv/bin/activate
     > pip3 install -r requirements.txt
 
   Run the app:
 
-    > export FLASK_APP=src.main.app.py
+    > export FLASK_APP=src.main.run.py
     > flask run
  
   The app should have started and be ready to receive requests at http://localhost:5000

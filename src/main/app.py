@@ -5,12 +5,17 @@ from src.main.resources.notice import Notices, UserNotices, UserNotice
 from src.main.resources.pet import UserPet, UserPets, SimilarPets
 from src.main.resources.user import User, Users, UserPwd
 from src.main.resources.photo import Photo
+from src.main.resources.ping import Ping
 from src.main.resources.login import UserLogin, UserLogout
+
+from src.main.facebook.facebookService import FacebookPostProcessor
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
 app.secret_key = str(uuid.uuid4())
 api = Api(app, prefix='/api/v0')
 
+api.add_resource(Ping, '/', methods=['GET'])
 
 # We define all the endpoints handled by this service
 api.add_resource(User, '/users/<string:userId>', methods=['GET', 'PUT', 'DELETE'])
@@ -29,8 +34,20 @@ api.add_resource(UserNotices, '/users/<string:userId>/notices', methods=['GET', 
 api.add_resource(Notices, '/notices', methods=['GET'])
 api.add_resource(SimilarPets, '/similarPets', methods=['POST'])
 
-
 api.add_resource(Photo, '/photos/<string:photoId>', methods=['GET'])
+
+api.add_resource(FacebookPostProcessor, '/facebook', methods=['GET'])
+
+scheduler = BackgroundScheduler()
+facebookProcessor = FacebookPostProcessor()
+
+try:
+    print("Scheduling task facebook processor...")
+    scheduler.add_job(facebookProcessor.processFacebookPosts, 'interval', hours=24)
+    scheduler.start()
+except (KeyboardInterrupt, SystemExit):
+    scheduler.shutdown()
+
 
 #TODO: add endpoint to CREATE / DELETE PET and USER PROFILE PHOTOS
 # api.add_resource(UserPet, '/users/<string:userId>/pets/<string:petId>/photos', methods=['POST'])
