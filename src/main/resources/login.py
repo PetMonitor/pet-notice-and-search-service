@@ -28,6 +28,10 @@ class UserLogin(Resource):
         "password": { "type": "string" }
     }
 
+    FACEBOOK_USER_CREDENTIALS_SCHEMA = {
+        "facebookId": { "type": "string" }
+    }
+
     def __init__(self):
         # Argument validator for user's login JSON body
         self.arg_validator = Validator()
@@ -42,7 +46,7 @@ class UserLogin(Resource):
         try:
             print("User login")
             userCredentials = request.get_json()
-            if not self.arg_validator.validate(userCredentials, UserLogin.USER_CREDENTIALS_SCHEMA):
+            if not (self.arg_validator.validate(userCredentials, UserLogin.USER_CREDENTIALS_SCHEMA) or self.arg_validator.validate(userCredentials, UserLogin.FACEBOOK_USER_CREDENTIALS_SCHEMA)):
                 print("ERROR {}".format(self.arg_validator.errors))
                 return "Unable to login user, received invalid login data {}: {}".format(userCredentials, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
             
