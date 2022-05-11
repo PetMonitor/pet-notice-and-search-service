@@ -8,7 +8,7 @@ from cerberus import Validator
 
 from flask_restful import fields, request, Resource, marshal_with
 
-DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
+DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://192.168.64.2:4000")
 
 
 class NoticeType(Enum):
@@ -32,9 +32,13 @@ notice_fields = {
         'photo': fields.List(fields.Integer, attribute='petPhoto.data')
     },
     'eventLocation': {
-        'lat': fields.String(attribute='eventLocationLat'),
-        'long': fields.String(attribute='eventLocationLong')
-    }
+        'lat': fields.Float(attribute='eventLocationLat'),
+        'long': fields.Float(attribute='eventLocationLong')
+    },
+    'street': fields.String,
+    'neighbourhood': fields.String,
+    'locality': fields.String,
+    'country': fields.String,
 }
 
 
@@ -69,10 +73,14 @@ class UserNotices(Resource):
             "type": "dict", 
             "require_all": True,
             "schema": {
-                "lat": { "type": "string" },
-                "long": { "type": "string" }
+                "lat": { "type": "float" },
+                "long": { "type": "float" }
             }
         },
+        "street": { "type": "string" },
+        "neighbourhood": { "type": "string" },
+        "locality": { "type": "string" },
+        "country": { "type": "string" },
         "description": { "type": "string" },
         "eventTimestamp": { "type": "string" }
     }
@@ -143,10 +151,14 @@ class UserNotice(Resource):
             "type": "dict", 
             "require_all": True,
             "schema":{
-                "lat": { "type": "string" },
-                "long": { "type": "string" }
+                "lat": { "type": "float" },
+                "long": { "type": "float" }
             }
         },
+        "street": { "type": "string" },
+        "neighbourhood": { "type": "string" },
+        "locality": { "type": "string" },
+        "country": { "type": "string" },
         "description": { "type": "string" },
         "eventTimestamp": { "type": "string" }
     }
