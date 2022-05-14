@@ -224,18 +224,3 @@ class UserPet(Resource):
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
 
-
-class SimilarPets(Resource):
-    """
-    Similar pet search resource.
-    """
-
-    @marshal_with(pet_fields)
-    def post(self):
-        """
-        Retrieves the pets which are near in terms of similarity to the one provided.
-        """
-        # TODO: Request to server
-        return {
-            "pets": []
-        }, HTTPStatus.OK

@@ -57,6 +57,23 @@ class Notices(Resource):
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR  
 
+    @marshal_with(notice_fields)
+    def get(self, noticeId):
+        """
+        Retrieves a notice by id.
+        :param noticeId identifier of the notice that will be retrieved.
+        """
+        try:
+            noticeByIdURL = DATABASE_SERVER_URL + "/notices/" + noticeId
+            print("Issue GET to " + noticeByIdURL)
+            response = requests.get(noticeByIdURL)
+            if response:
+                response.raise_for_status()
+                return response.json(), HTTPStatus.OK
+            return "No notice with found for id {}".format(noticeId), HTTPStatus.NOT_FOUND
+        except Exception as e:
+            print("ERROR {}".format(e))
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR 
 
 class UserNotices(Resource):
 
@@ -221,3 +238,36 @@ class UserNotice(Resource):
         except Exception as e:
             print("Failed to delete user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+class SimilarPets(Resource):
+    """
+    Similar pet search resource.
+    """
+
+    def get(self, noticeId):
+        """
+        Retrieves the pets which are near in terms of similarity to the one provided.
+        """
+        try:
+            closestMatchesURL = DATABASE_SERVER_URL + "/pets/finder/" + noticeId
+            print("Issue GET to " + closestMatchesURL)
+            response = requests.get(closestMatchesURL)
+            
+            response.raise_for_status()
+            response = response.json()
+
+            closestNotices = response["closestMatches"]
+
+            if len(closestNotices) <= 0:
+                return "No matches found!", HTTPStatus.NOT_FOUND
+            
+            
+            print("Got {} closest matches for notice {}".format(len(closestNotices), noticeId))
+
+            noticesRes = Notices()
+            return [ noticesRes.get(noticeId)[0] for noticeId in closestNotices ], HTTPStatus.OK
+
+        except Exception as e:
+            print("ERROR {}".format(e))
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR  
