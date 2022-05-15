@@ -1,21 +1,16 @@
-from urllib.error import HTTPError
 import uuid
 import requests
 import json
 import time
 from http import HTTPStatus
-
-from os import getenv
+from urllib.error import HTTPError
 from datetime import datetime, timedelta
-from src.main.constants import PostState
+from src.main.constants import PostState, DATABASE_SERVER_URL, FACEBOOK_GRAPH_BASE_URL, POST_DATE_DELETE_DELTA_DAYS, GROUP_ID
 
 from flask_restful import Resource
 
-DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
-FACEBOOK_GRAPH_BASE_URL = getenv("FACEBOOK_GRAPH_BASE_URL", "https://graph.facebook.com/v13.0/")
-FACEBOOK_BASE_URL = getenv("FACEBOOK_BASE_URL", "https://www.facebook.com/")
-POST_DATE_DELETE_DELTA_DAYS = getenv("POST_DATE_DELETE_DELTA", "365")
-GROUP_ID = getenv("GROUP_ID", "106287571429551")
+from apscheduler.schedulers.background import BackgroundScheduler
+
 
 DATE_FORMAT_STR = "%Y-%m-%dT%H:%M:%S+%f"
 
@@ -111,7 +106,7 @@ class FacebookPostProcessor(Resource):
                 #    postImages.append(mainAttachmentImgSrc)
                 
             if len(postImages) == 0:
-                print("Skipping post {} creation, because no image attachments were found.".format(postId))
+                print("Skipping post {} creation, because no image attachments were found.")
                 continue
             
             eventTimestamp = time.mktime(datetime.strptime(post["created_time"], DATE_FORMAT_STR).timetuple())
@@ -160,6 +155,7 @@ class FacebookPostProcessor(Resource):
         delta = timedelta(days=int(POST_DATE_DELETE_DELTA_DAYS))
         beforeDate = str(datetime.today() - delta)
         self.deletePostsBeforeDate(beforeDate)
+        
 
     def deletePostsBeforeDate(self, date):
         try:
@@ -193,3 +189,12 @@ class FacebookPostProcessor(Resource):
             return None
 
 
+sched = BackgroundScheduler()
+facebookProcessor = FacebookPostProcessor()
+
+try:
+    print("Scheduling task facebook processor...")
+    sched.add_job(facebookProcessor.processFacebookPosts, 'interval', hours=24)
+    sched.start()
+except (KeyboardInterrupt, SystemExit):
+    sched.shutdown()

@@ -238,36 +238,3 @@ class UserNotice(Resource):
         except Exception as e:
             print("Failed to delete user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
-
-
-class SimilarPets(Resource):
-    """
-    Similar pet search resource.
-    """
-
-    def get(self, noticeId):
-        """
-        Retrieves the pets which are near in terms of similarity to the one provided.
-        """
-        try:
-            closestMatchesURL = DATABASE_SERVER_URL + "/pets/finder/" + noticeId
-            print("Issue GET to " + closestMatchesURL)
-            response = requests.get(closestMatchesURL)
-            
-            response.raise_for_status()
-            response = response.json()
-
-            closestNotices = response["closestMatches"]
-
-            if len(closestNotices) <= 0:
-                return "No matches found!", HTTPStatus.NOT_FOUND
-            
-            
-            print("Got {} closest matches for notice {}".format(len(closestNotices), noticeId))
-
-            noticesRes = Notices()
-            return [ noticesRes.get(noticeId)[0] for noticeId in closestNotices ], HTTPStatus.OK
-
-        except Exception as e:
-            print("ERROR {}".format(e))
-            return e, HTTPStatus.INTERNAL_SERVER_ERROR  
