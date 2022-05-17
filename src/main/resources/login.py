@@ -2,14 +2,14 @@ import requests
 
 from os import getenv
 from http import HTTPStatus
-from cerberus import Validator
 from src.main.utils.jwtGenerator import JwtGenerator
 from src.main.utils.requestAuthorizer import RequestAuthorizer
+from src.main.constants import DATABASE_SERVER_URL
 
-from flask_restful import fields, request, Resource, marshal_with
 from flask import session
+from cerberus import Validator
+from flask_restful import fields, request, Resource, marshal_with
 
-DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
 # Fields returned by the src for the UserLogin resource
 user_fields = {

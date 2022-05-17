@@ -1,12 +1,12 @@
-import requests
 import io
+import requests
 from os import getenv
 from http import HTTPStatus
 from cerberus import Validator
 from flask_restful import Resource
 from flask import send_file
 
-DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
+from src.main.constants import DATABASE_SERVER_URL
 
 
 class Photo(Resource):

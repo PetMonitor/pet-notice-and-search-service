@@ -1,15 +1,14 @@
 import uuid
 import requests
 import json
-from os import getenv
 from http import HTTPStatus
-from cerberus import Validator
 
+from cerberus import Validator
 from flask_restful import fields, request, Resource, marshal_with
 
+from src.main.constants import DATABASE_SERVER_URL
 from src.main.utils.requestAuthorizer import RequestAuthorizer
 
-DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
 # Fields returned by the src for the User resource
 user_fields = {
