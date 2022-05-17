@@ -6,7 +6,7 @@ from cerberus import Validator
 from flask_restful import Resource
 from flask import send_file
 
-DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://192.168.64.2:4000")
+DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
 
 class Photo(Resource):
