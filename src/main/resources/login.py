@@ -2,14 +2,14 @@ import requests
 
 from os import getenv
 from http import HTTPStatus
-from cerberus import Validator
 from src.main.utils.jwtGenerator import JwtGenerator
 from src.main.utils.requestAuthorizer import RequestAuthorizer
+from src.main.constants import DATABASE_SERVER_URL
 
-from flask_restful import fields, request, Resource, marshal_with
 from flask import session
+from cerberus import Validator
+from flask_restful import fields, request, Resource, marshal_with
 
-DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
 # Fields returned by the src for the UserLogin resource
 user_fields = {
@@ -28,6 +28,10 @@ class UserLogin(Resource):
         "password": { "type": "string" }
     }
 
+    FACEBOOK_USER_CREDENTIALS_SCHEMA = {
+        "facebookId": { "type": "string" }
+    }
+
     def __init__(self):
         # Argument validator for user's login JSON body
         self.arg_validator = Validator()
@@ -42,7 +46,7 @@ class UserLogin(Resource):
         try:
             print("User login")
             userCredentials = request.get_json()
-            if not self.arg_validator.validate(userCredentials, UserLogin.USER_CREDENTIALS_SCHEMA):
+            if not (self.arg_validator.validate(userCredentials, UserLogin.USER_CREDENTIALS_SCHEMA) or self.arg_validator.validate(userCredentials, UserLogin.FACEBOOK_USER_CREDENTIALS_SCHEMA)):
                 print("ERROR {}".format(self.arg_validator.errors))
                 return "Unable to login user, received invalid login data {}: {}".format(userCredentials, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
             

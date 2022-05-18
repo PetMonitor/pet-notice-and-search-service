@@ -7,7 +7,7 @@ from http import HTTPStatus
 from cerberus import Validator
 from flask_restful import fields, request, Resource, marshal_with
 
-DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
+from src.main.constants import DATABASE_SERVER_URL
 
 
 class PetType(Enum):
@@ -224,18 +224,3 @@ class UserPet(Resource):
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
 
-
-class SimilarPets(Resource):
-    """
-    Similar pet search resource.
-    """
-
-    @marshal_with(pet_fields)
-    def post(self):
-        """
-        Retrieves the pets which are near in terms of similarity to the one provided.
-        """
-        # TODO: Request to server
-        return {
-            "pets": []
-        }, HTTPStatus.OK

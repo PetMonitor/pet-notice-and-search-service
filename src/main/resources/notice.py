@@ -8,7 +8,7 @@ from cerberus import Validator
 
 from flask_restful import fields, request, Resource, marshal_with
 
-DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
+from src.main.constants import DATABASE_SERVER_URL
 
 
 class NoticeType(Enum):
@@ -32,9 +32,13 @@ notice_fields = {
         'photo': fields.List(fields.Integer, attribute='petPhoto.data')
     },
     'eventLocation': {
-        'lat': fields.String(attribute='eventLocationLat'),
-        'long': fields.String(attribute='eventLocationLong')
-    }
+        'lat': fields.Float(attribute='eventLocationLat'),
+        'long': fields.Float(attribute='eventLocationLong')
+    },
+    'street': fields.String,
+    'neighbourhood': fields.String,
+    'locality': fields.String,
+    'country': fields.String,
 }
 
 
@@ -57,6 +61,23 @@ class Notices(Resource):
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR  
 
+    @marshal_with(notice_fields)
+    def get(self, noticeId):
+        """
+        Retrieves a notice by id.
+        :param noticeId identifier of the notice that will be retrieved.
+        """
+        try:
+            noticeByIdURL = DATABASE_SERVER_URL + "/notices/" + noticeId
+            print("Issue GET to " + noticeByIdURL)
+            response = requests.get(noticeByIdURL)
+            if response:
+                response.raise_for_status()
+                return response.json(), HTTPStatus.OK
+            return "No notice with found for id {}".format(noticeId), HTTPStatus.NOT_FOUND
+        except Exception as e:
+            print("ERROR {}".format(e))
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR 
 
 class UserNotices(Resource):
 
@@ -69,10 +90,14 @@ class UserNotices(Resource):
             "type": "dict", 
             "require_all": True,
             "schema": {
-                "lat": { "type": "string" },
-                "long": { "type": "string" }
+                "lat": { "type": "float" },
+                "long": { "type": "float" }
             }
         },
+        "street": { "type": "string" },
+        "neighbourhood": { "type": "string" },
+        "locality": { "type": "string" },
+        "country": { "type": "string" },
         "description": { "type": "string" },
         "eventTimestamp": { "type": "string" }
     }
@@ -143,10 +168,14 @@ class UserNotice(Resource):
             "type": "dict", 
             "require_all": True,
             "schema":{
-                "lat": { "type": "string" },
-                "long": { "type": "string" }
+                "lat": { "type": "float" },
+                "long": { "type": "float" }
             }
         },
+        "street": { "type": "string" },
+        "neighbourhood": { "type": "string" },
+        "locality": { "type": "string" },
+        "country": { "type": "string" },
         "description": { "type": "string" },
         "eventTimestamp": { "type": "string" }
     }

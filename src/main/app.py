@@ -1,21 +1,28 @@
 import uuid
 from flask import Flask
 from flask_restful import Api
+
 from src.main.resources.notice import Notices, UserNotices, UserNotice
-from src.main.resources.pet import UserPet, UserPets, SimilarPets
+from src.main.resources.pet import UserPet, UserPets
 from src.main.resources.user import User, Users, UserPwd
-from src.main.resources.photo import Photo
+from src.main.resources.photo import Photo, UserProfilePicture
+from src.main.resources.ping import Ping
 from src.main.resources.login import UserLogin, UserLogout
+from src.main.resources.facebookUser import FacebookUser
+from src.main.resources.similarPets import SimilarPets, SimilarPetsAlerts
+from src.main.facebook.facebookService import FacebookPostProcessor
 
 app = Flask(__name__)
 app.secret_key = str(uuid.uuid4())
 api = Api(app, prefix='/api/v0')
 
+api.add_resource(Ping, '/', methods=['GET'])
 
 # We define all the endpoints handled by this service
 api.add_resource(User, '/users/<string:userId>', methods=['GET', 'PUT', 'DELETE'])
 api.add_resource(Users, '/users', methods=['GET', 'POST'])
 api.add_resource(UserPwd, '/users/<string:userId>/password', methods=['PUT'])
+api.add_resource(FacebookUser, '/users/facebook/<string:facebookId>', methods=['GET'])
 
 api.add_resource(UserLogin, '/users/login', methods=['POST'])
 api.add_resource(UserLogout, '/users/logout', methods=['POST'])
@@ -27,10 +34,14 @@ api.add_resource(UserNotice, '/users/<string:userId>/notices/<string:noticeId>',
 api.add_resource(UserNotices, '/users/<string:userId>/notices', methods=['GET', 'POST'])
 
 api.add_resource(Notices, '/notices', methods=['GET'])
-api.add_resource(SimilarPets, '/similarPets', methods=['POST'])
-
+api.add_resource(SimilarPets, '/similarPets/<string:noticeId>', methods=['GET'])
+api.add_resource(SimilarPetsAlerts, '/similarPets/alerts', methods=['GET', 'POST'])
 
 api.add_resource(Photo, '/photos/<string:photoId>', methods=['GET'])
+api.add_resource(UserProfilePicture, '/photos/profile/<string:userId>', methods=['GET'])
+
+api.add_resource(FacebookPostProcessor, '/facebook', methods=['GET'])
+
 
 #TODO: add endpoint to CREATE / DELETE PET and USER PROFILE PHOTOS
 # api.add_resource(UserPet, '/users/<string:userId>/pets/<string:petId>/photos', methods=['POST'])

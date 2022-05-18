@@ -1,15 +1,14 @@
 import uuid
 import requests
 import json
-from os import getenv
 from http import HTTPStatus
-from cerberus import Validator
 
+from cerberus import Validator
 from flask_restful import fields, request, Resource, marshal_with
 
+from src.main.constants import DATABASE_SERVER_URL
 from src.main.utils.requestAuthorizer import RequestAuthorizer
 
-DATABASE_SERVER_URL = getenv("DATABASE_SERVER_URL", "http://127.0.0.1:8000")
 
 # Fields returned by the src for the User resource
 user_fields = {
@@ -145,12 +144,23 @@ class UserPwd(Resource):
 
 class Users(Resource):
 
+    # TODO: add profile picture for facebook users
     USERS_SCHEMA = {
         "uuid": { "type": "string", "required": True },
         "_ref": { "type": "string", "required": True },
         "username": { "type": "string", "required": True },
-        "password": { "type": "string", "required": True },
+        "name": { "type": "string", "required": False },
+        "password": { "type": "string", "required": False },
+        "facebookId": { "type": "string", "required": False },
         "email": { "type": "string" },
+        "profilePicture": {
+            "type": "dict",
+            "required": False,
+            "schema": {
+                "uuid": { "type": "string", "required": True },
+                "photo": { "type": "string", "required": True },
+            }
+        },
         "pets": { 
             "type": "list", 
             "required": False, 
@@ -220,6 +230,12 @@ class Users(Resource):
             newUser["uuid"] = str(uuid.uuid4())
             newUser["_ref"] = str(uuid.uuid4())
 
+            if "profilePicture" in newUser:
+                newUser["profilePicture"] = { 
+                    "uuid": str(uuid.uuid4()),
+                    "photo": newUser["profilePicture"] 
+                }
+
             if "pets" in newUser:
                 for pet in newUser["pets"]:
                     pet["uuid"] = str(uuid.uuid4())
@@ -232,10 +248,14 @@ class Users(Resource):
 
                     pet["photos"] = petPhotos
                 
-                # print('Received user with pets {}'.format(newUser))
+            # print('Received user with pets {}'.format(newUser))
             if not self.arg_validator.validate(newUser, Users.USERS_SCHEMA):
                 print("ERROR {}".format(self.arg_validator.errors))
                 return "Unable to create user, received invalid user {}: {}".format(newUser, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
+
+            if (("password" not in newUser) and ("facebookId" not in newUser)):
+                print("ERROR: either password or facebook profile id must be provided")
+                return "Unable to create user, received invalid user {}: either password or facebook profile id must be provided".format(newUser), HTTPStatus.BAD_REQUEST
 
             # print('Creating user {}'.format(newUser))
             response = requests.post(DATABASE_SERVER_URL + "/users", headers={'Content-Type': 'application/json'}, data=json.dumps(newUser))
@@ -244,5 +264,5 @@ class Users(Resource):
                 return response.json(), HTTPStatus.CREATED
             return "Received empty response from database server. User creation failed.", HTTPStatus.INTERNAL_SERVER_ERROR
         except Exception as e:
-            print("Failed to create user: {}", e)
+            print("Failed to create user: {}".format(e.__cause__))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
