@@ -32,9 +32,13 @@ notice_fields = {
         'photo': fields.List(fields.Integer, attribute='petPhoto.data')
     },
     'eventLocation': {
-        'lat': fields.String(attribute='eventLocationLat'),
-        'long': fields.String(attribute='eventLocationLong')
-    }
+        'lat': fields.Float(attribute='eventLocationLat'),
+        'long': fields.Float(attribute='eventLocationLong')
+    },
+    'street': fields.String,
+    'neighbourhood': fields.String,
+    'locality': fields.String,
+    'country': fields.String,
 }
 
 
@@ -46,7 +50,7 @@ class Notices(Resource):
         Retrieves all the notices. 
         """
         try:
-            noticesURL = DATABASE_SERVER_URL + "/notices"
+            noticesURL = DATABASE_SERVER_URL + "/notices?" + request.query_string.decode("utf-8")
             print("Issue GET to " + noticesURL)
             response = requests.get(noticesURL)
             if response:
@@ -86,10 +90,14 @@ class UserNotices(Resource):
             "type": "dict", 
             "require_all": True,
             "schema": {
-                "lat": { "type": "string" },
-                "long": { "type": "string" }
+                "lat": { "type": "float" },
+                "long": { "type": "float" }
             }
         },
+        "street": { "type": "string" },
+        "neighbourhood": { "type": "string" },
+        "locality": { "type": "string" },
+        "country": { "type": "string" },
         "description": { "type": "string" },
         "eventTimestamp": { "type": "string" }
     }
@@ -104,7 +112,7 @@ class UserNotices(Resource):
     def get(self, userId):
         """
         Retrieves all the notices created by a user.
-        :param user_id identifier of the user who owns the notices.
+        :param userId identifier of the user who owns the notices.
         """
         try:
             userNoticesURL = DATABASE_SERVER_URL + "/users/" + userId + "/notices"
@@ -122,7 +130,7 @@ class UserNotices(Resource):
     def post(self, userId):
         """
         Creates a notice from a user.
-        :param user_id identifier of the user who creates the notice.
+        :param userId identifier of the user who creates the notice.
         :returns the new notice.
         """
         try:
@@ -160,10 +168,14 @@ class UserNotice(Resource):
             "type": "dict", 
             "require_all": True,
             "schema":{
-                "lat": { "type": "string" },
-                "long": { "type": "string" }
+                "lat": { "type": "float" },
+                "long": { "type": "float" }
             }
         },
+        "street": { "type": "string" },
+        "neighbourhood": { "type": "string" },
+        "locality": { "type": "string" },
+        "country": { "type": "string" },
         "description": { "type": "string" },
         "eventTimestamp": { "type": "string" }
     }

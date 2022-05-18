@@ -1,7 +1,5 @@
 import json
 from http import HTTPStatus
-from src.test.test_pet_requests import TEST_USER
-from src.main.resources.user import User, Users
 from mock import patch
 from src.main.app import app
 
