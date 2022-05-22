@@ -1,4 +1,5 @@
 import io
+import re
 import requests
 from os import getenv
 from http import HTTPStatus
@@ -53,11 +54,13 @@ class UserProfilePicture(Resource):
             photoURL = DATABASE_SERVER_URL + "/photos/profile/" + userId
             print("Issue GET to " + photoURL)
             response = requests.get(photoURL)
-            #if response:
+            
+            if response.status_code != HTTPStatus.OK:
+                print("GET to " + photoURL + " returned status code " + str(response.status_code))
+                return response.data, response.status_code
+
             print("Response was {}".format(response.raw))
-            #response.raise_for_status()
             return send_file(io.BytesIO(response.content), 'image/png')
-            #return "No profile pictures found for user with id {}".format(userId), HTTPStatus.NOT_FOUND
         except Exception as e:
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR

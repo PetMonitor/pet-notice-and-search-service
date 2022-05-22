@@ -176,6 +176,7 @@ class Users(Resource):
                     "lifeStage": { "type": "string" },
                     "sex": { "type": "string" },
                     "breed": { "type": "string" },
+                    "isMyPet": { "type": "boolean", "required": False },
                     "description": { "type": "string" },
                     "photos": {
                         "type": "list", 
