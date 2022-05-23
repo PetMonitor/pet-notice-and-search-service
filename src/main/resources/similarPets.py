@@ -1,14 +1,12 @@
 import requests
 from http import HTTPStatus
-from datetime import datetime, timedelta
-
-from src.main.constants import DATABASE_SERVER_URL
+from datetime import datetime
 from src.main.resources.notice import Notices
 
 from flask_restful import request, Resource
 from apscheduler.schedulers.background import BackgroundScheduler
 
-MAX_NOTICE_SEARCH_ALERT_DAYS = 10
+from src.main.constants import DATABASE_SERVER_URL
 
 # Uncomment to get detailed logging for scheduler
 # import logging
@@ -65,25 +63,47 @@ class SimilarPetsAlerts(Resource):
 
             noticeId = newAlertData["noticeId"]
             userId = newAlertData["userId"] 
-            jobName = userId + "_noticeSearch"
+            alertFrequency = newAlertData["alertFrequency"]
+            alertLimitDate = newAlertData["alertLimitDate"] 
+            jobName = self.getJobName(userId)
 
             for job in searchScheduler.get_jobs():
                 if job.name == jobName:
                     print("Removing job id: {} name: {}, and replacing with new alert.".format(job.id, job.name))
                     searchScheduler.remove_job(job.id)
 
+            alertEndDate = datetime.fromisoformat(alertLimitDate)
 
-            alertEndDateTime = datetime.now() + timedelta(days=MAX_NOTICE_SEARCH_ALERT_DAYS)
-            alertEndDate = datetime.date(alertEndDateTime)
+            print("Schedule alert for similar notice search for user {} and notice {}. Scheduled to end on {}. Scheduled to run every {} hours.".format(userId, noticeId, str(alertEndDate), alertFrequency))
 
-            print("Schedule alert for similar notice search for user {} and notice {}. Scheduled to end on {}".format(userId, noticeId, str(alertEndDate)))
-
-            searchScheduler.add_job(SimilarPetsAlerts().searchSimilarNoticesAndNotify, args=[ noticeId ], trigger='cron', hour='*/2', minute=0, second=0, end_date=alertEndDate, name=jobName)
+            alertFreqExp = "*/{}".format(alertFrequency)
+            searchScheduler.add_job(SimilarPetsAlerts().searchSimilarNoticesAndNotify, args=[ noticeId ], trigger='cron', hour=alertFreqExp, minute=0, second=0, end_date=alertEndDate, name=jobName)
             return "OK", HTTPStatus.OK
         except Exception as e:
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR  
     
+    def delete(self):
+        try:
+            requestData = request.get_json()
+
+            userId = requestData["userId"] 
+            jobName = self.getJobName(userId)
+
+            for job in searchScheduler.get_jobs():
+                print("JOB {}".format(job.name))
+                if job.name == jobName:
+                    print("Removing job id: {} name: {}, and replacing with new alert.".format(job.id, job.name))
+                    searchScheduler.remove_job(job.id)
+
+            return "OK", HTTPStatus.CREATED
+
+        except Exception as e:
+            print("ERROR {}".format(e))
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR  
+
+    def getJobName(self, userId):
+        return userId + "_noticeSearch"
 
 
     def searchSimilarNoticesAndNotify(self, noticeId):

@@ -57,7 +57,7 @@ class UserProfilePicture(Resource):
             
             if response.status_code != HTTPStatus.OK:
                 print("GET to " + photoURL + " returned status code " + str(response.status_code))
-                return response.data, response.status_code
+                return "", response.status_code
 
             print("Response was {}".format(response.raw))
             return send_file(io.BytesIO(response.content), 'image/png')
