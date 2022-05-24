@@ -1,7 +1,6 @@
 import uuid
 import requests
 
-from os import getenv
 from http import HTTPStatus
 from enum import Enum, auto
 from cerberus import Validator
@@ -59,7 +58,10 @@ class Notices(Resource):
             return "No notices found.", HTTPStatus.NOT_FOUND
         except Exception as e:
             print("ERROR {}".format(e))
-            return e, HTTPStatus.INTERNAL_SERVER_ERROR  
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+class Notice(Resource):
 
     @marshal_with(notice_fields)
     def get(self, noticeId):
@@ -78,6 +80,7 @@ class Notices(Resource):
         except Exception as e:
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR 
+
 
 class UserNotices(Resource):
 
