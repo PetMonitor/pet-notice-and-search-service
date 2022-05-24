@@ -2,7 +2,7 @@ import uuid
 from flask import Flask
 from flask_restful import Api
 
-from src.main.resources.notice import Notices, UserNotices, UserNotice
+from src.main.resources.notice import Notices, UserNotices, UserNotice, Notice
 from src.main.resources.pet import UserPet, UserPets
 from src.main.resources.user import User, Users, UserPwd
 from src.main.resources.photo import Photo, UserProfilePicture
@@ -34,6 +34,7 @@ api.add_resource(UserNotice, '/users/<string:userId>/notices/<string:noticeId>',
 api.add_resource(UserNotices, '/users/<string:userId>/notices', methods=['GET', 'POST'])
 
 api.add_resource(Notices, '/notices', methods=['GET'])
+api.add_resource(Notice, '/notices/<string:noticeId>', methods=['GET'])
 api.add_resource(SimilarPets, '/similarPets/<string:noticeId>', methods=['GET'])
 api.add_resource(SimilarPetsAlerts, '/similarPets/alerts', methods=['GET', 'POST'])
 
