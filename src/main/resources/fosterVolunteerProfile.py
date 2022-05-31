@@ -44,6 +44,7 @@ class FosterVolunteerProfile(Resource):
         # Argument parser for FosterVolunteerProfile creation's JSON body
         self.arg_validator = Validator()
         self.arg_validator.allow_unknown = False
+        super(FosterVolunteerProfile, self).__init__()
 
     def get(self, profileId):
         """
