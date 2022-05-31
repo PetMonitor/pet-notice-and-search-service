@@ -27,11 +27,11 @@ class Photo(Resource):
             photoURL = DATABASE_SERVER_URL + "/photos/" + photoId
             print("Issue GET to " + photoURL)
             response = requests.get(photoURL)
-            if response:
+            if response and response.status_code == HTTPStatus.OK:
                 print("Response was {}".format(response.raw))
-                response.raise_for_status()
                 return send_file(io.BytesIO(response.content), 'image/png')
-            return "No photos found for with id {}".format(photoId), HTTPStatus.NOT_FOUND
+            resp = { "reason":"No photos found for with id {}".format(photoId) }    
+            return  resp.json(), HTTPStatus.NOT_FOUND
         except Exception as e:
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR

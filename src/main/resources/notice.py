@@ -73,8 +73,8 @@ class Notices(Resource):
             response = requests.get(noticeByIdURL)
             if response:
                 response.raise_for_status()
-                return response.json(), HTTPStatus.OK
-            return "No notice with found for id {}".format(noticeId), HTTPStatus.NOT_FOUND
+
+            return response.json(), HTTPStatus.OK
         except Exception as e:
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR 
@@ -162,22 +162,23 @@ class UserNotice(Resource):
 
     USER_NOTICE_SCHEMA = {
         "_ref": { "type": "string", "required": True },
-        "petId": { "type": "string" },
-        "noticeType": { "type": "string" },
+        "petId": { "type": "string", "required": False },
+        "noticeType": { "type": "string", "required": False },
         "eventLocation": { 
             "type": "dict", 
             "require_all": True,
             "schema":{
                 "lat": { "type": "float" },
                 "long": { "type": "float" }
-            }
+            },
+            "required": False 
         },
-        "street": { "type": "string" },
-        "neighbourhood": { "type": "string" },
-        "locality": { "type": "string" },
-        "country": { "type": "string" },
-        "description": { "type": "string" },
-        "eventTimestamp": { "type": "string" }
+        "street": { "type": "string", "required": False },
+        "neighbourhood": { "type": "string", "required": False },
+        "locality": { "type": "string", "required": False },
+        "country": { "type": "string", "required": False },
+        "description": { "type": "string", "required": False },
+        "eventTimestamp": { "type": "string", "required": False }
     }
 
     def __init__(self):
