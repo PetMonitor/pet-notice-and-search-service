@@ -1,5 +1,4 @@
 import io
-import re
 import requests
 from os import getenv
 from http import HTTPStatus
