@@ -38,7 +38,7 @@ api.add_resource(UserNotices, '/users/<string:userId>/notices', methods=['GET', 
 api.add_resource(Notices, '/notices', methods=['GET'])
 api.add_resource(Notice, '/notices/<string:noticeId>', methods=['GET'])
 api.add_resource(SimilarPets, '/similarPets/<string:noticeId>', methods=['GET'])
-api.add_resource(SimilarPetsAlerts, '/similarPets/alerts', methods=['GET', 'POST'])
+api.add_resource(SimilarPetsAlerts, '/similarPets/alerts', methods=['GET', 'POST', 'DELETE'])
 
 api.add_resource(Photo, '/photos/<string:photoId>', methods=['GET'])
 api.add_resource(UserProfilePicture, '/photos/profile/<string:userId>', methods=['GET'])
