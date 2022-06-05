@@ -1,3 +1,4 @@
+import json
 import uuid
 import requests
 
@@ -140,19 +141,30 @@ class UserPets(Resource):
 class UserPet(Resource):
 
     USER_PET_SCHEMA = {
-        "_ref": { "type": "string", "required": True },
-        "userId": { "type": "string" },
-        "type": { "type": "string" },
-        "name": { "type": "string" },
-        "furColor": { "type": "string" },
-        "size": { "type": "string" },
-        "rightEyeColor": { "type": "string", "required": False },
-        "leftEyeColor": { "type": "string", "required": False },
-        "age": { "type": "integer", "required": False },
-        "lifeStage": { "type": "string" },
-        "sex": { "type": "string" },
-        "breed": { "type": "string" },
-        "description": { "type": "string" }
+        "petData": {
+            "type": "dict",
+            "schema": {
+                "_ref": { "type": "string", "required": True },
+                "userId": { "type": "string" },
+                "type": { "type": "string" },
+                "name": { "type": "string" },
+                "furColor": { "type": "string" },
+                "size": { "type": "string" },
+                "rightEyeColor": { "type": "string", "required": False },
+                "leftEyeColor": { "type": "string", "required": False },
+                "age": { "type": "integer", "required": False },
+                "lifeStage": { "type": "string" },
+                "sex": { "type": "string" },
+                "breed": { "type": "string" },
+                "description": { "type": "string" }
+            }
+        },
+        "newPhotos": { 
+            "type": "list",
+        },
+        "deletedPhotos": { 
+            "type": "list",
+        },
     }
 
     def __init__(self):
@@ -193,11 +205,18 @@ class UserPet(Resource):
             print("Issue PUT to " + petURL)
 
             updatedPet = request.get_json()
+
             if not self.arg_validator.validate(updatedPet, UserPet.USER_PET_SCHEMA):
                 print("ERROR {}".format(self.arg_validator.errors))
                 return "Received invalid pet for update {}: {}".format(updatedPet, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
 
-            response = requests.put(petURL, data=updatedPet)
+            newPetPhotos = []
+            for photo in updatedPet["newPhotos"]:
+                newPetPhotos.append({ "uuid": str(uuid.uuid4()), "photo": photo })
+
+            updatedPet["newPhotos"] = newPetPhotos
+
+            response = requests.put(petURL, headers={'Content-Type': 'application/json'}, data=json.dumps(updatedPet))
             if response:
                 response.raise_for_status()
                 return "Successfully updated {} records".format(response.json()[0]), HTTPStatus.OK
