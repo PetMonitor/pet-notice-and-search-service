@@ -23,6 +23,14 @@ user_fields = {
     "profilePicture": fields.String
 }
 
+# Fields returned by the src for the UserContactInfo resource
+user_contact_info_fields = {
+    "userId": fields.String(attribute="uuid"),
+    "email": fields.String,
+    "name": fields.String,
+    "phoneNumber": fields.String,
+}
+
 
 class User(Resource):
 
@@ -266,4 +274,32 @@ class Users(Resource):
             return "Received empty response from database server. User creation failed.", HTTPStatus.INTERNAL_SERVER_ERROR
         except Exception as e:
             print("Failed to create user: {}".format(e.__cause__))
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+class UserContactInfo(Resource):
+
+    @marshal_with(user_contact_info_fields)
+    def get(self, userId):
+        """
+        Retrieves a specific user's contact information.
+        :param userId identifier of the user.
+        """
+        try:
+            usersByIdURL = DATABASE_SERVER_URL + "/users/" + userId
+            print("Issue GET to " + usersByIdURL)
+            response = requests.get(usersByIdURL)
+            if response:
+                response.raise_for_status()
+                json_response = response.json()
+                contact_info_response = {
+                    'uuid': json_response["uuid"],
+                    'name': json_response["name"],
+                    'phoneNumber': json_response["phoneNumber"],
+                    'email': json_response["email"],
+                }
+                return contact_info_response, HTTPStatus.OK
+            return "User with id {} not found".format(userId), HTTPStatus.NOT_FOUND
+        except Exception as e:
+            print("Failed to get user contact info {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
