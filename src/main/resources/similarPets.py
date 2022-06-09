@@ -1,7 +1,7 @@
 import requests
 from http import HTTPStatus
 from datetime import datetime
-from src.main.resources.notice import Notices
+from src.main.resources.notice import Notice
 
 from flask_restful import request, Resource
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -41,7 +41,7 @@ class SimilarPets(Resource):
             
             print("Got {} closest matches for notice {}".format(len(closestNotices), noticeId))
 
-            noticesRes = Notices()
+            noticesRes = Notice()
             return [ noticesRes.get(noticeId)[0] for noticeId in closestNotices ], HTTPStatus.OK
 
         except Exception as e:
@@ -126,7 +126,7 @@ class SimilarPetsAlerts(Resource):
                 return
             
 
-            noticesRes = Notices()
+            noticesRes = Notice()
             
 
             # TODO: send notification with result

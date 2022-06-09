@@ -13,6 +13,8 @@ from src.main.resources.login import UserLogin, UserLogout
 from src.main.resources.facebookUser import FacebookUser
 from src.main.resources.similarPets import SimilarPets, SimilarPetsAlerts
 from src.main.facebook.facebookService import FacebookPostProcessor
+from src.main.resources.predictionResult import PredictionResult
+
 
 app = Flask(__name__)
 app.secret_key = str(uuid.uuid4())
@@ -51,7 +53,4 @@ api.add_resource(PetFosterHistory, '/pets/<string:petId>/fosterHistory', methods
 
 api.add_resource(FacebookPostProcessor, '/facebook', methods=['GET'])
 
-
-#TODO: add endpoint to CREATE / DELETE PET and USER PROFILE PHOTOS
-# api.add_resource(UserPet, '/users/<string:userId>/pets/<string:petId>/photos', methods=['POST'])
-# api.add_resource(UserPet, '/users/<string:userId>/pets/<string:petId>/photos/:photoId', methods=['DELETE'])
+api.add_resource(PredictionResult, '/prediction/result/failure/<string:searchedNoticeId>', methods=['POST'])
