@@ -14,6 +14,7 @@ history_fields = {
     'historyId': fields.String(attribute='uuid'),
     '_ref': fields.String,
     'petId': fields.String,
+    'userId': fields.String,
     'contactEmail': fields.String,
     'contactPhone': fields.String,
     'contactName': fields.String,
@@ -27,6 +28,7 @@ class PetFosterHistoryEntry(Resource):
     PET_FOSTER_HISTORY_ENTRY_SCHEMA = {
         "_ref": {"type": "string", "required": True},
         "petId": {"type": "string"},
+        "userId": {"type": "string", 'nullable': True},
         "contactEmail": {"type": "string"},
         "contactPhone": {"type": "string"},
         "contactName": {"type": "string"},
