@@ -9,28 +9,33 @@ Server that will provide the API endpoints to handle pet similarity searches, al
 The server contains a `requirements.txt` file in the root folder. That file declares all the dependencies that are used by the service. In order to install them, just run the following command:
 
 `pip3 install -r requirements.txt`
-   
+
 ## Run locally
 
-  Set up a python virtualenv and install dependencies:
-  
-  Create virtual environment:
+Set up a python virtualenv and install dependencies:
+
+Create virtual environment:
 
     > cd pet-notice-and-search-service
     > virtualenv venv
 
-  Activate virtual environment:
-  
+Activate virtual environment:
+
     > source venv/bin/activate
     > pip3 install -r requirements.txt
 
-  Run the app:
+Set relevant env variables such as:
+
+    > FB_PAGE_ACCESS_TOKEN
+    > FB_USER_ACCESS_TOKEN
+
+Run the app:
 
     > export FLASK_APP=src.main.run.py
     > flask run
- 
-  The app should have started and be ready to receive requests at http://localhost:5000
+
+The app should have started and be ready to receive requests at http://localhost:5000
 
 ## Run tests locally
 
-   > pytest --cov src/test -vv
+> pytest --cov src/test -vv

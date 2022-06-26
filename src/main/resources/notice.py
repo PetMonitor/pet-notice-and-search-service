@@ -248,9 +248,9 @@ class UserNotice(Resource):
             userNoticeByIdURL = DATABASE_SERVER_URL + "/users/" + userId + "/notices/" + noticeId
             print("Issue DELETE to " + userNoticeByIdURL)
             response = requests.delete(userNoticeByIdURL)
-            if response:
-                response.raise_for_status()
-                return "Successfully deleted {} records".format(response.json()), HTTPStatus.OK
+            
+            response.raise_for_status()
+            return "Successfully deleted {} records".format(response.json()), HTTPStatus.OK
         except Exception as e:
             print("Failed to delete user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
