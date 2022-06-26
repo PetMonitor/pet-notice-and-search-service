@@ -4,8 +4,6 @@ install:
   - pip3 install -r requirements.txt
 # run tests
 script:
-  - mkdir src/config
-  - touch src/config/config.json
   - pytest src/test -vv --cov
 notifications:
   email:
