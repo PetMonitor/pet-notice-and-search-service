@@ -93,3 +93,8 @@ class TestUserRequests(object):
         assert len(responseBody) == len(TEST_USERS_OUTPUT[0])
         assert json.dumps(responseBody, sort_keys=True) == json.dumps(TEST_USERS_OUTPUT[0], sort_keys=True)
         assert response.status_code == HTTPStatus.OK
+
+
+#TODO add post test
+#TODO add put test
+#TODO add delete test

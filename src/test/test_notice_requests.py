@@ -108,3 +108,13 @@ def test_get_notice_by_id_returns_requested_notice(requests_mock):
     assert json.dumps(notice, sort_keys=True) == json.dumps(TEST_NOTICES_OUTPUT[0], sort_keys=True)
     assert response[RESPONSE_STATUS_IDX] == HTTPStatus.OK
 
+def test_delete_notice_by_id_returns_ok(requests_mock):
+    noticeId = TEST_NOTICES[0]["uuid"]
+    requests_mock.delete(DATABASE_USER_NOTICES_URL + "/" + noticeId, json=TEST_NOTICES[0])
+    response = UserNotice().delete(TEST_USER["uuid"], noticeId)
+
+    # Verify response content 
+    assert response[RESPONSE_STATUS_IDX] == HTTPStatus.OK
+
+#TODO add post test
+#TODO add put test
