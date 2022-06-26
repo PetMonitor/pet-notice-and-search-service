@@ -33,4 +33,4 @@ The server contains a `requirements.txt` file in the root folder. That file decl
 
 ## Run tests locally
 
-   > pytest src/test -vv
+   > pytest --cov src/test -vv

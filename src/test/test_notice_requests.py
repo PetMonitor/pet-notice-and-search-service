@@ -19,10 +19,14 @@ TEST_NOTICES = [
         "petId": "123e4567-e89b-12d3-a456-426614174001",
         "userId": "123e4567-e89b-12d3-a456-426614174000",
         "noticeType": "LOST",
-        "eventLocationLat": "123",
-        "eventLocationLong": "345",
+        "eventLocationLat": 123.0,
+        "eventLocationLong": 345.0,
         "description": "My pet is lost! Please help!",
         "eventTimestamp": "2021-08-16T02:34:46+00:00",
+        "street": "Green Ln",
+        "neighbourhood": "Bovingdon",
+        "locality": "Hertfordshire",
+        "country": "England",
       },
       {
         "uuid": "123e4567-e89b-12d3-a456-426614176666",
@@ -30,10 +34,14 @@ TEST_NOTICES = [
         "petId": "123e4567-e89b-12d3-a456-426614174002",
         "userId": "123e4567-e89b-12d3-a456-426614175000",
         "noticeType": "FOUND",
-        "eventLocationLat": "123",
-        "eventLocationLong": "345",
+        "eventLocationLat": 123.0,
+        "eventLocationLong": 345.0,
         "description": "I found this lovely dog!",
-        "eventTimestamp": "2021-08-16T02:34:46+00:00"
+        "eventTimestamp": "2021-08-16T02:34:46+00:00",
+        "street": "Green Ln",
+        "neighbourhood": "Bovingdon",
+        "locality": "Hertfordshire",
+        "country": "England",
       }
 ]
 
@@ -44,9 +52,13 @@ TEST_NOTICES_OUTPUT = [
         "pet": {"id":"123e4567-e89b-12d3-a456-426614174001", "photo": None},
         "userId": "123e4567-e89b-12d3-a456-426614174000",
         "noticeType": "LOST",
-        "eventLocation": {"lat":"123","long": "345"},
+        "eventLocation": {"lat":123.0,"long": 345.0},
         "description": "My pet is lost! Please help!",
         "eventTimestamp": "2021-08-16T02:34:46+00:00",
+        "street": "Green Ln",
+        "neighbourhood": "Bovingdon",
+        "locality": "Hertfordshire",
+        "country": "England",
       },
       {
         "noticeId": "123e4567-e89b-12d3-a456-426614176666",
@@ -54,9 +66,13 @@ TEST_NOTICES_OUTPUT = [
         "pet": {"id":"123e4567-e89b-12d3-a456-426614174002", "photo": None},
         "userId": "123e4567-e89b-12d3-a456-426614175000",
         "noticeType": "FOUND",
-        "eventLocation": {"lat":"123","long": "345"},
+        "eventLocation": {"lat":123.0,"long": 345.0},
         "description": "I found this lovely dog!",
-        "eventTimestamp": "2021-08-16T02:34:46+00:00"
+        "eventTimestamp": "2021-08-16T02:34:46+00:00",
+        "street": "Green Ln",
+        "neighbourhood": "Bovingdon",
+        "locality": "Hertfordshire",
+        "country": "England",
       }
 ]
 
