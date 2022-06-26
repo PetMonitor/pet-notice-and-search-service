@@ -5,7 +5,7 @@ import time
 from http import HTTPStatus
 from urllib.error import HTTPError
 from datetime import datetime, timedelta
-from src.main.constants import PostState, DATABASE_SERVER_URL, FACEBOOK_GRAPH_BASE_URL, POST_DATE_DELETE_DELTA_DAYS, GROUP_ID
+from src.main.constants import PostState, DATABASE_SERVER_URL, FACEBOOK_GRAPH_BASE_URL, POST_DATE_DELETE_DELTA_DAYS, GROUP_ID, FB_PAGE_ACCESS_TOKEN, FB_USER_ACCESS_TOKEN
 
 from flask_restful import Resource
 
@@ -24,10 +24,6 @@ POST_TAG_TYPE = {
 
 class FacebookPostProcessor(Resource):
 
-    def __init__(self):
-        configFile = open('config/config.json')
-        self.tokens = json.load(configFile)
-
     def get(self):
         self.processFacebookPosts()
         return "Successfully processed facebook posts", HTTPStatus.CREATED
@@ -36,7 +32,7 @@ class FacebookPostProcessor(Resource):
         print("Processing facebook posts")
         
         # get feed
-        petMonitorFeed = requests.get(FACEBOOK_GRAPH_BASE_URL + GROUP_ID + "/feed?access_token={}".format(self.tokens["fbUserAccessToken"]))
+        petMonitorFeed = requests.get(FACEBOOK_GRAPH_BASE_URL + GROUP_ID + "/feed?access_token={}".format(FB_USER_ACCESS_TOKEN))
 
         if not petMonitorFeed:
             print("Attempt to retrieve Pet Monitor Facebook page feed failed. Facebook did not return response.")
@@ -86,7 +82,7 @@ class FacebookPostProcessor(Resource):
                     postType = POST_TAG_TYPE[hashtag]
                     print("Processing message {}. Pet tagged as {} for this post.".format(post["id"], POST_TAG_TYPE[hashtag]))
 
-            postAttachments = requests.get(FACEBOOK_GRAPH_BASE_URL + post["id"] + "/attachments?access_token={}".format(self.tokens["fbUserAccessToken"]))
+            postAttachments = requests.get(FACEBOOK_GRAPH_BASE_URL + post["id"] + "/attachments?access_token={}".format(FB_USER_ACCESS_TOKEN))
 
             postAttachments = postAttachments.json()["data"]
 
@@ -170,7 +166,7 @@ class FacebookPostProcessor(Resource):
         try:
             print("Posting reply for {}".format(commentId))
             requests.post(
-                FACEBOOK_GRAPH_BASE_URL + commentId + "/comments?access_token={}".format(self.tokens["fbPageAccessToken"]),
+                FACEBOOK_GRAPH_BASE_URL + commentId + "/comments?access_token={}".format(FB_PAGE_ACCESS_TOKEN),
                 data={ "message": replyMessage }
             )
         except HTTPError as e:
