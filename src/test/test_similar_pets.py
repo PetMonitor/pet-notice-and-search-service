@@ -1,7 +1,7 @@
 
-import copy
 import json
 from http import HTTPStatus
+from mock import patch
 
 from src.main.app import app
 
@@ -11,6 +11,11 @@ DATABASE_SIMILAR_PETS_URL = DATABASE_URL + "/similarPets"
 CLOSEST_MATCHES_RESPONSE = {
     "closestMatches": [ "123e4567-e89b-12d3-a456-426614175555", "123e4567-e89b-12d3-a456-426614176666" ]
 }
+
+class FakeScheduledJob(object):
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
 
 TEST_NOTICES_OUTPUT = [
       {
@@ -43,6 +48,10 @@ TEST_NOTICES_OUTPUT = [
       }
 ]
 
+TEST_SCHEDULED_JOBS = [FakeScheduledJob("123","testScheduledJob_123"), FakeScheduledJob("456", "testScheduledJob_456")]
+
+
+
 test_client = app.test_client()
 
 def test_get_similar_pets_returns_list_with_similar_notices(requests_mock):
@@ -53,3 +62,12 @@ def test_get_similar_pets_returns_list_with_similar_notices(requests_mock):
 
     response = test_client.get('/api/v0/similarPets/' + searchedNoticeId)
     assert response.status_code == HTTPStatus.OK
+
+@patch("src.main.resources.similarPets.BackgroundScheduler.get_jobs", side_effect=[TEST_SCHEDULED_JOBS])
+def test_get_similar_pets_alerts_returns_list_of_all_scheduled_alerts(requests_mock):
+    response = test_client.get('/api/v0/similarPets/alerts')
+    assert response.status_code == HTTPStatus.OK
+    assert response.json == { "jobs": [
+      { "id" : TEST_SCHEDULED_JOBS[0].id, "name": TEST_SCHEDULED_JOBS[0].name },
+      { "id" : TEST_SCHEDULED_JOBS[1].id, "name": TEST_SCHEDULED_JOBS[1].name }
+    ]}
