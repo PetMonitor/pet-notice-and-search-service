@@ -235,10 +235,8 @@ class UserPet(Resource):
             petURL = DATABASE_SERVER_URL + "/users/" + userId + "/pets/" + petId
             print("Issue DELETE to " + petURL)
             response = requests.delete(petURL)
-            if response:
-                response.raise_for_status()
-                return "Correctly deleted {} records".format(response.json()), HTTPStatus.OK
-            return "Received empty response from database server. Pet with id {} not updated for user {}".format(petId, userId), HTTPStatus.INTERNAL_SERVER_ERROR
+            response.raise_for_status()
+            return "Correctly deleted {} records".format(response.json()), HTTPStatus.OK
         except Exception as e:
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR

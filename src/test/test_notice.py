@@ -3,7 +3,7 @@ import json
 from http import HTTPStatus
 
 from src.main.app import app
-from src.main.resources.notice import UserNotice, UserNotices
+from src.main.resources.notice import UserNotice
 
 
 TEST_USER = {
@@ -147,7 +147,6 @@ def test_create_notice_returns_ok(requests_mock):
     assert testResponse.status_code == HTTPStatus.CREATED.value
     #assert responseBody["eventLocationLat"] == TEST_NOTICE_REQUEST["eventLocation"]["lat"]
     #assert responseBody["eventLocationLong"] == TEST_NOTICE_REQUEST["eventLocation"]["long"]
-
 
 
 def test_update_notice_returns_ok(requests_mock):
