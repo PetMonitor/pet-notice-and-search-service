@@ -152,10 +152,9 @@ class UserNotices(Resource):
                 newNotice["eventLocationLong"] = newNotice["eventLocation"]["long"]
                 del newNotice["eventLocation"]
             response = requests.post(userNoticesURL, data=newNotice)
-            if response:
-                response.raise_for_status()
-                return response.json(), HTTPStatus.CREATED
-            return "Received no response from database server. Notice creation failed.", HTTPStatus.INTERNAL_SERVER_ERROR
+            
+            response.raise_for_status()
+            return response.json(), HTTPStatus.CREATED
         except Exception as e:
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR   
@@ -229,10 +228,9 @@ class UserNotice(Resource):
                 updatedNotice["eventLocationLong"] = updatedNotice["eventLocation"]["long"]
                 del updatedNotice["eventLocation"]
             response = requests.put(userNoticeByIdURL, data=updatedNotice)
-            if response:
-                response.raise_for_status()
-                return "Successfully updated {} records".format(response.json()[0]), HTTPStatus.OK
-            return "Received empty response from database server. Notice with id {} for user {} could not be updated.".format(noticeId, userId), HTTPStatus.INTERNAL_SERVER_ERROR
+            
+            response.raise_for_status()
+            return "Successfully updated {} records".format(response.json()[0]), HTTPStatus.OK
         except Exception as e:
             print("ERROR {}".format(e))
             return "ERROR {}".format(e), HTTPStatus.INTERNAL_SERVER_ERROR    

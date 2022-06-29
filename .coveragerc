@@ -1,0 +1,6 @@
+[run]
+omit =
+    src/test/*
+    src/main/utils/*
+    src/main/resources/ping.py
+    *__init__.py
