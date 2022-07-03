@@ -83,7 +83,7 @@ def test_post_similar_pets_alerts_schedules_programmed_search(requests_mock):
       "noticeId": "123",
       "userId": "456",
       "alertFrequency": 1,
-      "alertLimitDate": "2002-12-04"
+      "alertLimitDate": "2002-12-04T20:26:08.937881"
     }
     response = test_client.post('/api/v0/similarPets/alerts', json=newAlertReq)
     assert response.status_code == HTTPStatus.CREATED 
@@ -99,7 +99,7 @@ def test_post_similar_pets_alerts_replaces_existing_jobs_for_same_user(requests_
       "noticeId": "123",
       "userId": "456",
       "alertFrequency": 1,
-      "alertLimitDate": "2002-12-04"
+      "alertLimitDate": "2002-12-04T20:26:08.937881"
     }
     response = test_client.post('/api/v0/similarPets/alerts', json=newAlertReq)
     assert response.status_code == HTTPStatus.CREATED 

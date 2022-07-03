@@ -74,7 +74,7 @@ class SimilarPetsAlerts(Resource):
                     print("Removing job id: {} name: {}, and replacing with new alert.".format(job.id, job.name))
                     searchScheduler.remove_job(job.id)
 
-            alertEndDate = datetime.fromisoformat(alertLimitDate)
+            alertEndDate = datetime.strptime(alertLimitDate, "%Y-%m-%dT%H:%M:%S.%f")
             alertFreqExp = "*/{}".format(alertFrequency)
             
             searchScheduler.add_job(SimilarPetsAlerts().searchSimilarNoticesAndNotify, args=[ noticeId ], trigger='cron', hour=alertFreqExp, minute=0, second=0, end_date=alertEndDate, name=jobName)
