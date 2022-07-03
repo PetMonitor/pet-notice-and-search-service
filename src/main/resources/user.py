@@ -81,17 +81,17 @@ class User(Resource):
             if not RequestAuthorizer.authenticateRequester(userId, request):
                 return "Request unauthorized: user session not found", HTTPStatus.UNAUTHORIZED
             updateUserURL = DATABASE_SERVER_URL + "/users/" + userId
-            print("Issue PUT to " + updateUserURL)
 
             updatedUser = request.get_json()
             if not self.arg_validator.validate(updatedUser, User.USER_SCHEMA):
                 print("VALIDATION ERROR: {}".format(self.arg_validator.errors))
                 return "Received invalid user for update {}: {}".format(updatedUser, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
 
+            print("Issue PUT to " + updateUserURL)
             response = requests.put(updateUserURL, data=updatedUser)
-            if response:
-                response.raise_for_status()
-                return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
+            
+            response.raise_for_status()
+            return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
         except Exception as e:
             print("Failed to update user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
@@ -133,18 +133,18 @@ class UserPwd(Resource):
         try:
             if not RequestAuthorizer.authenticateRequester(userId, request):
                 return "Request unauthorized: user session not found", HTTPStatus.UNAUTHORIZED
-            updateUserURL = DATABASE_SERVER_URL + "/users/" + userId + "/password"
-            print("Issue PUT to " + updateUserURL)
+            updateUserURL = DATABASE_SERVER_URL + "/users/{}/password".format(userId)
 
             updatedUserPwd = request.get_json()
             if not self.arg_validator.validate(updatedUserPwd, UserPwd.USER_PWD_SCHEMA):
                 print("VALIDATION ERROR: {}".format(self.arg_validator.errors))
                 return "Received invalid user password for update".format(self.arg_validator.errors), HTTPStatus.BAD_REQUEST
 
+            print("Issue PUT to " + updateUserURL)
             response = requests.put(updateUserURL, data=updatedUserPwd)
-            if response:
-                response.raise_for_status()
-                return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
+            
+            response.raise_for_status()
+            return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
         except Exception as e:
             print("Failed to update user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR        

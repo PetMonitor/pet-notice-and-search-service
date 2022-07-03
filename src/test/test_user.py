@@ -101,7 +101,29 @@ class FakeDelete(object):
 
 		if (self.url == DATABASE_URL + "/123"):
 			self.status_code = 200
-			self.response = { "code" : self.status_code, "deletedCount": 1  }         
+			self.response = { "code" : self.status_code, "deletedCount": 1 }         
+		else:
+			self.response = { "code" : 404, "message" : "Not Found" }
+
+	def json(self):
+		return self.response 
+           
+	def raise_for_status(self):
+		if self.status_code != HTTPStatus.OK:
+			raise ValueError("Database mock server returned error {}".format(self.status_code))
+
+class FakePut(object):
+	def __init__(self, url, headers={}, data=''):
+		self.url = url
+		self.db = DATABASE_URL
+		self.status_code = 0
+
+		if (self.url == DATABASE_URL + "/123"):
+			self.status_code = 200
+			self.response = { "code" : self.status_code, "updatedCount": 1  }         
+		elif (self.url == DATABASE_URL + "/123/password"):
+			self.status_code = 200
+			self.response = { "code" : self.status_code, "updatedCount": 1  }                 
 		else:
 			self.response = { "code" : 404, "message" : "Not Found" }
 
@@ -111,7 +133,6 @@ class FakeDelete(object):
 	def raise_for_status(self):
 		if self.status_code != HTTPStatus.OK:
 			raise ValueError("Database mock server returned error {}".format(self.status_code))
-
 
 class TestUserRequests(object):
 
@@ -251,4 +272,96 @@ class TestUserRequests(object):
 
         assert response.status_code == HTTPStatus.OK
         assert "Successfully deleted 1 records" in response.data.decode('utf-8')
-#TODO add put test
+
+    @patch("src.main.resources.user.requests.put", side_effect=FakePut)
+    @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.authenticateRequester", return_value=True)
+    def test_put_user_request_returns_ok(self, request_authorized_mock, fake_put):
+        modifiedUserId = "123"
+        modifiedUserRequest =  {
+            "_ref": "234234",
+            "username": "TerryPratchett",
+            "name": "Terry Pratchett",
+        }
+
+        client = app.test_client()
+        response = client.put('/api/v0/users/' + modifiedUserId, json=modifiedUserRequest)
+
+        assert response.status_code == HTTPStatus.OK
+        assert "Successfully updated 1 records" in response.data.decode('utf-8')    
+
+
+    @patch("src.main.resources.user.requests.put", side_effect=FakePut)
+    @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.authenticateRequester", return_value=True)
+    def test_put_user_request_missing_required_field_fails(self, request_authorized_mock, fake_put):
+        modifiedUserId = "123"
+        modifiedUserRequestNoRef =  {
+            "username": "TerryPratchett",
+            "name": "Terry Pratchett",
+        }
+
+        client = app.test_client()
+        response = client.put('/api/v0/users/' + modifiedUserId, json=modifiedUserRequestNoRef)
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+
+    @patch("src.main.resources.user.requests.get", side_effect=FakeGet)
+    @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.authenticateRequester", return_value=True)
+    def test_get_user_contact_info_returns_contact_information(self, request_authorized_mock, fake_get):
+        expectedContactInfo = {
+            "userId": TEST_USERS[0]["uuid"],
+            "name": TEST_USERS[0]["name"],
+            "phoneNumber": TEST_USERS[0]["phoneNumber"],
+            "email": TEST_USERS[0]["email"],
+        }
+
+        client = app.test_client()
+        response = client.get('/api/v0/users/' + TEST_USERS[0]['uuid'] + '/contactInfo')
+
+        userContactInfo = response.get_json()    
+
+        assert response.status_code == HTTPStatus.OK
+        assert userContactInfo == expectedContactInfo
+
+    @patch("src.main.resources.user.requests.put", side_effect=FakePut)
+    @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.authenticateRequester", return_value=True)
+    def test_user_change_pwd_returns_ok(self, request_authorized_mock, fake_put):
+        modifiedUserId = "123"
+        modifyUserPwdRequest =  {
+            "_ref": "234234",
+            "oldPassword": "discworld123",
+            "newPassword": "goodOmens123",
+        }
+
+        client = app.test_client()
+        response = client.put('/api/v0/users/' + modifiedUserId + '/password', json=modifyUserPwdRequest)
+
+        assert response.status_code == HTTPStatus.OK
+        assert "Successfully updated 1 records" in response.data.decode('utf-8')       
+
+    @patch("src.main.resources.user.requests.put", side_effect=FakePut)
+    @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.authenticateRequester", return_value=True)
+    def test_user_change_pwd_fails_if_required_field_not_provided(self, request_authorized_mock, fake_put):
+        modifiedUserId = "123"
+        modifyUserPwdRequest =  {
+            "oldPassword": "discworld123",
+            "newPassword": "goodOmens123",
+        }
+
+        client = app.test_client()
+        response = client.put('/api/v0/users/' + modifiedUserId + '/password', json=modifyUserPwdRequest)
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+
+    @patch("src.main.resources.user.requests.put", side_effect=FakePut)
+    @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.authenticateRequester", return_value=False)
+    def test_user_change_pwd_not_authorized_returns_error(self, request_authorized_mock, fake_put):
+        modifiedUserId = "123"
+        modifyUserPwdRequest =  {
+            "_ref": "234234",
+            "oldPassword": "discworld123",
+            "newPassword": "goodOmens123",
+        }
+        client = app.test_client()
+        response = client.put('/api/v0/users/' + modifiedUserId + '/password', json=modifyUserPwdRequest)
+
+        assert response.status_code == HTTPStatus.UNAUTHORIZED    
