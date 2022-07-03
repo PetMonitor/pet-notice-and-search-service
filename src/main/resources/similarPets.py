@@ -131,7 +131,7 @@ class SimilarPetsAlerts(Resource):
 
             # TODO: send notification with result
             # [ noticesRes.get(noticeId)[0] for noticeId in closestNotices ]
-            return
+            return "OK"
 
         except Exception as e:
             print("ERROR {}".format(e))

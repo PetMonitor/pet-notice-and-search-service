@@ -1,10 +1,10 @@
 
-import json
 from http import HTTPStatus
-from mock import patch, MagicMock
-
 from src.main.app import app
 from src.main.resources.similarPets import SimilarPetsAlerts
+
+import unittest.mock as mock
+from mock import patch, MagicMock
 
 DATABASE_URL = "http://127.0.0.1:8000"
 DATABASE_SIMILAR_PETS_URL = DATABASE_URL + "/similarPets" 
@@ -103,3 +103,20 @@ def test_post_similar_pets_alerts_replaces_existing_jobs_for_same_user(requests_
     }
     response = test_client.post('/api/v0/similarPets/alerts', json=newAlertReq)
     assert response.status_code == HTTPStatus.CREATED 
+
+@patch("src.main.resources.similarPets.BackgroundScheduler.get_jobs", side_effect=[[FakeScheduledJob("456","testScheduledJob_456")]])
+def test_post_similar_pets_alerts_deletes_alert_for_user(requests_mock):
+    deleteAlertReq = {
+      "userId": "456",
+    }
+    response = test_client.delete('/api/v0/similarPets/alerts', json=deleteAlertReq)
+    assert response.status_code == HTTPStatus.CREATED 
+
+#TODO: update this test when notifications are added
+def test_search_similar_notices_and_notify_alerts_users(requests_mock):
+    searchedNoticeId = "123"
+    similarPetsAlerts = SimilarPetsAlerts()
+    requests_mock.get(DATABASE_URL + "/pets/finder/" + searchedNoticeId, json=CLOSEST_MATCHES_RESPONSE)
+
+    result = similarPetsAlerts.searchSimilarNoticesAndNotify(searchedNoticeId) 
+    assert result == "OK"
