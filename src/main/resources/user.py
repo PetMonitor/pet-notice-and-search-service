@@ -152,7 +152,6 @@ class UserPwd(Resource):
 
 class Users(Resource):
 
-    # TODO: add profile picture for facebook users
     USERS_SCHEMA = {
         "uuid": { "type": "string", "required": True },
         "_ref": { "type": "string", "required": True },
@@ -160,7 +159,7 @@ class Users(Resource):
         "name": { "type": "string", "required": False },
         "password": { "type": "string", "required": False },
         "facebookId": { "type": "string", "required": False },
-        "email": { "type": "string" },
+        "email": { "type": "string", "required": True },
         "profilePicture": {
             "type": "dict",
             "required": False,
@@ -268,12 +267,11 @@ class Users(Resource):
 
             # print('Creating user {}'.format(newUser))
             response = requests.post(DATABASE_SERVER_URL + "/users", headers={'Content-Type': 'application/json'}, data=json.dumps(newUser))
-            if response:
-                response.raise_for_status()
-                return response.json(), HTTPStatus.CREATED
-            return "Received empty response from database server. User creation failed.", HTTPStatus.INTERNAL_SERVER_ERROR
+
+            response.raise_for_status()
+            return response.json(), HTTPStatus.CREATED
         except Exception as e:
-            print("Failed to create user: {}".format(e.__cause__))
+            print("Failed to create user: {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
 
 

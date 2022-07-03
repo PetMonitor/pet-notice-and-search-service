@@ -13,6 +13,10 @@ CLOSEST_MATCHES_RESPONSE = {
     "closestMatches": [ "123e4567-e89b-12d3-a456-426614175555", "123e4567-e89b-12d3-a456-426614176666" ]
 }
 
+CLOSEST_MATCHES_EMPTY_RESPONSE = {
+    "closestMatches": [ ]
+}
+
 class FakeScheduledJob(object):
     def __init__(self, id, name):
         self.id = id
@@ -119,4 +123,13 @@ def test_search_similar_notices_and_notify_alerts_users(requests_mock):
     requests_mock.get(DATABASE_URL + "/pets/finder/" + searchedNoticeId, json=CLOSEST_MATCHES_RESPONSE)
 
     result = similarPetsAlerts.searchSimilarNoticesAndNotify(searchedNoticeId) 
-    assert result == "OK"
+    assert result == CLOSEST_MATCHES_RESPONSE
+
+#TODO: update this test when notifications are added
+def test_search_similar_notices_and_no_matches_found_does_not_alert_users(requests_mock):
+    searchedNoticeId = "123"
+    similarPetsAlerts = SimilarPetsAlerts()
+    requests_mock.get(DATABASE_URL + "/pets/finder/" + searchedNoticeId, json=CLOSEST_MATCHES_EMPTY_RESPONSE)
+
+    result = similarPetsAlerts.searchSimilarNoticesAndNotify(searchedNoticeId) 
+    assert result == CLOSEST_MATCHES_EMPTY_RESPONSE   

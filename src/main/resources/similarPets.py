@@ -118,12 +118,13 @@ class SimilarPetsAlerts(Resource):
             response = requests.get(closestMatchesURL)
             
             response.raise_for_status()
-            response = response.json()
+            closestMatchesResponse = response.json()
 
-            closestNotices = response["closestMatches"]
+            closestNotices = closestMatchesResponse["closestMatches"]
 
             if len(closestNotices) <= 0:
-                return
+                print("Running scheduled search for notice with id {}".format(noticeId))
+                return closestMatchesResponse
             
 
             noticesRes = Notice()
@@ -131,7 +132,7 @@ class SimilarPetsAlerts(Resource):
 
             # TODO: send notification with result
             # [ noticesRes.get(noticeId)[0] for noticeId in closestNotices ]
-            return "OK"
+            return closestMatchesResponse
 
         except Exception as e:
             print("ERROR {}".format(e))
