@@ -74,28 +74,6 @@ class FakeGet(object):
         return self.response
 
 class FakePost(object):
-    def __init__(self, url, headers={}):
-        self.url = url
-        self.headers = headers
-        self.status_code = 0
-
-        if (self.url == DATABASE_URL):
-            self.status_code = 201
-            self.response = TEST_NEW_USER_NO_PETS
-        else:
-            self.status_code = 404
-            self.response = {"error":"test route not found"}            
-
-    def json(self):
-        return self.response
-    
-    def raise_for_status(self):
-        return
-
-    def response(self):
-        return self.response
-
-class FakePost(object):
 	def __init__(self, url, headers={}, data=''):
 		self.url = url
 		self.db = DATABASE_URL
@@ -104,9 +82,9 @@ class FakePost(object):
 
 		if (self.url == DATABASE_URL):
 			self.status_code = 201
-			self.response = {"code" : self.status_code, "user": json.loads(self.data) }
+			self.response = { "code" : self.status_code, "user": json.loads(self.data) }            
 		else:
-			self.response = {"code" : 404, 'message' : 'Not Found'}
+			self.response = { "code" : 404, "message" : "Not Found" }
 
 	def json(self):
 		return self.response["user"]        
@@ -115,12 +93,31 @@ class FakePost(object):
 		if self.status_code != HTTPStatus.CREATED:
 			raise ValueError("Database mock server returned error {}".format(self.status_code))
 
+class FakeDelete(object):
+	def __init__(self, url, headers={}):
+		self.url = url
+		self.db = DATABASE_URL
+		self.status_code = 0
+
+		if (self.url == DATABASE_URL + "/123"):
+			self.status_code = 200
+			self.response = { "code" : self.status_code, "deletedCount": 1  }         
+		else:
+			self.response = { "code" : 404, "message" : "Not Found" }
+
+	def json(self):
+		return self.response        
+
+	def raise_for_status(self):
+		if self.status_code != HTTPStatus.OK:
+			raise ValueError("Database mock server returned error {}".format(self.status_code))
+
 
 class TestUserRequests(object):
 
     @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.isRequestAuthorized", return_value=True)
     @patch("src.main.resources.user.requests.get", side_effect=FakeGet)
-    def test_get_users_returns_all_users(self, requestAuthorizedMock, FakeGet):
+    def test_get_users_returns_all_users(self, request_authorized_mock, fake_get):
         client = app.test_client()
         response = client.get('/api/v0/users')
 
@@ -136,7 +133,7 @@ class TestUserRequests(object):
 
     @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.authenticateRequester", return_value=True)
     @patch("src.main.resources.user.requests.get", side_effect=FakeGet)
-    def test_get_user_by_id_returns_requested_user(self, requestAuthorizedMock, FakeGet):
+    def test_get_user_by_id_returns_requested_user(self, request_authorized_mock, fake_get):
         client = app.test_client()
         response = client.get('/api/v0/users/' + TEST_USERS[0]['uuid'])
 
@@ -149,7 +146,7 @@ class TestUserRequests(object):
         assert response.status_code == HTTPStatus.OK
 
     @patch("src.main.resources.user.requests.post", side_effect=FakePost)
-    def test_post_user_with_no_pets_creates_new_user(self, FakePost):
+    def test_post_user_with_no_pets_creates_new_user(self, fake_post):
         createUserRequest =  {
             "username": "TerryPratchett",
             "name": "Terry Pratchett",
@@ -170,7 +167,49 @@ class TestUserRequests(object):
         assert  createdUser["email"] == TEST_NEW_USER_NO_PETS["email"]
         assert  createdUser["name"] == TEST_NEW_USER_NO_PETS["name"]
 
-    def test_post_user_if_req_missing_field_request_fails(self):
+    
+    @patch("src.main.resources.user.requests.post", side_effect=FakePost)
+    def test_post_user_with_pets_creates_new_user(self, fake_post):
+        createUserRequest =  {
+            "username": "TerryPratchett",
+            "name": "Terry Pratchett",
+            "password": "verysercretpwd",
+            "email": "terrypratchett@discworld.com",
+            "profilePicture": "base64EncodedImg",
+            "pets": [{ 
+                "type": "DOG", 
+                "uuid": "123e4567-e89b-12d3-a456-426614174000",
+                "_ref": "123e4567-e89b-12d3-a456-426614175000",
+                "name": "Greebo",
+                "furColor": "brown",
+                "size": "LARGE",
+                "lifeStage": "PUPPY",
+                "sex": "FEMALE",
+                "breed": "",
+                "isMyPet": True,
+                "description": "This is greebo, he is my dog",
+                "photos": [
+                    "base64EncodedImg2",
+                    "base64EncodedImg3"
+                ]
+            }]
+        }
+
+        client = app.test_client()
+        response = client.post('/api/v0/users', json=createUserRequest)
+
+        responseStatusCode = response.status_code
+        createdUser = response.get_json()    
+        
+        print("CREATED PET WITH PETS {}".format(createdUser))
+        assert responseStatusCode == HTTPStatus.CREATED
+        assert  len(createdUser["userId"]) > 0
+        assert  len(createdUser["_ref"]) > 0
+        assert  createdUser["email"] == createUserRequest["email"]
+        assert  createdUser["name"] == createUserRequest["name"]
+    
+
+    def test_post_user_if_req_missing_required_field_request_fails(self):
         createUserRequestMissingEmail =  {
             "username": "TerryPratchett",
             "name": "Terry Pratchett",
@@ -202,6 +241,14 @@ class TestUserRequests(object):
 
         assert responseStatusCode == HTTPStatus.BAD_REQUEST    
 
-#TODO add post test
+    @patch("src.main.resources.user.requests.delete", side_effect=FakeDelete)
+    @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.authenticateRequester", return_value=True)
+    def test_delete_user_request_returns_ok(self, request_authorized_mock, fake_delete):
+        deletedUserId = "123"
+
+        client = app.test_client()
+        response = client.delete('/api/v0/users/' + deletedUserId)
+
+        assert response.status_code == HTTPStatus.OK
+        assert "Successfully deleted 1 records" in response.data.decode('utf-8')
 #TODO add put test
-#TODO add delete test

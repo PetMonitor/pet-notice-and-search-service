@@ -107,9 +107,9 @@ class User(Resource):
             deleteUserURL = DATABASE_SERVER_URL + "/users/" + userId
             print("Issue DELETE to " + deleteUserURL)
             response = requests.delete(deleteUserURL)
-            if response:
-                response.raise_for_status()
-                return "Successfully deleted {} records".format(response.json()['deletedCount']), HTTPStatus.OK
+            
+            response.raise_for_status()
+            return "Successfully deleted {} records".format(response.json()['deletedCount']), HTTPStatus.OK
         except Exception as e:
             print("Failed to delete user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
