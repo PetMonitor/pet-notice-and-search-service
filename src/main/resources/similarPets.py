@@ -67,18 +67,18 @@ class SimilarPetsAlerts(Resource):
             alertLimitDate = newAlertData["alertLimitDate"] 
             jobName = self.getJobName(userId)
 
+            print("Received request to create alert! {}".format(str(newAlertData)))
+
             for job in searchScheduler.get_jobs():
                 if job.name == jobName:
                     print("Removing job id: {} name: {}, and replacing with new alert.".format(job.id, job.name))
                     searchScheduler.remove_job(job.id)
 
             alertEndDate = datetime.fromisoformat(alertLimitDate)
-
-            print("Schedule alert for similar notice search for user {} and notice {}. Scheduled to end on {}. Scheduled to run every {} hours.".format(userId, noticeId, str(alertEndDate), alertFrequency))
-
             alertFreqExp = "*/{}".format(alertFrequency)
+            
             searchScheduler.add_job(SimilarPetsAlerts().searchSimilarNoticesAndNotify, args=[ noticeId ], trigger='cron', hour=alertFreqExp, minute=0, second=0, end_date=alertEndDate, name=jobName)
-            return "OK", HTTPStatus.OK
+            return "OK", HTTPStatus.CREATED
         except Exception as e:
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR  

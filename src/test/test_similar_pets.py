@@ -1,9 +1,10 @@
 
 import json
 from http import HTTPStatus
-from mock import patch
+from mock import patch, MagicMock
 
 from src.main.app import app
+from src.main.resources.similarPets import SimilarPetsAlerts
 
 DATABASE_URL = "http://127.0.0.1:8000"
 DATABASE_SIMILAR_PETS_URL = DATABASE_URL + "/similarPets" 
@@ -71,3 +72,34 @@ def test_get_similar_pets_alerts_returns_list_of_all_scheduled_alerts(requests_m
       { "id" : TEST_SCHEDULED_JOBS[0].id, "name": TEST_SCHEDULED_JOBS[0].name },
       { "id" : TEST_SCHEDULED_JOBS[1].id, "name": TEST_SCHEDULED_JOBS[1].name }
     ]}
+
+@patch.multiple(
+  "src.main.resources.similarPets.BackgroundScheduler", 
+  get_jobs=MagicMock(return_value=[]),
+  add_job=MagicMock(return_value=None),
+)
+def test_post_similar_pets_alerts_schedules_programmed_search(requests_mock):
+    newAlertReq = {
+      "noticeId": "123",
+      "userId": "456",
+      "alertFrequency": 1,
+      "alertLimitDate": "2002-12-04"
+    }
+    response = test_client.post('/api/v0/similarPets/alerts', json=newAlertReq)
+    assert response.status_code == HTTPStatus.CREATED 
+
+@patch.multiple(
+  "src.main.resources.similarPets.BackgroundScheduler", 
+  get_jobs=MagicMock(return_value=[FakeScheduledJob("456","456_noticeSearch")]),
+  remove_job=MagicMock(return_value=None),
+  add_job=MagicMock(return_value=None),
+)
+def test_post_similar_pets_alerts_replaces_existing_jobs_for_same_user(requests_mock):
+    newAlertReq = {
+      "noticeId": "123",
+      "userId": "456",
+      "alertFrequency": 1,
+      "alertLimitDate": "2002-12-04"
+    }
+    response = test_client.post('/api/v0/similarPets/alerts', json=newAlertReq)
+    assert response.status_code == HTTPStatus.CREATED 
