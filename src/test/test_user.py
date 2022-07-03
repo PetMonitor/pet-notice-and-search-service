@@ -166,6 +166,15 @@ class TestUserRequests(object):
         assert json.dumps(responseBody, sort_keys=True) == json.dumps(TEST_USERS_OUTPUT[0], sort_keys=True)
         assert response.status_code == HTTPStatus.OK
 
+    @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.authenticateRequester", return_value=False)
+    @patch("src.main.resources.user.requests.get", side_effect=FakeGet)
+    def test_get_user_by_id_unauthorized_fails(self, request_authorized_mock, fake_get):
+        client = app.test_client()
+        response = client.get('/api/v0/users/' + TEST_USERS[0]['uuid'])
+
+        # Verify response content 
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
     @patch("src.main.resources.user.requests.post", side_effect=FakePost)
     def test_post_user_with_no_pets_creates_new_user(self, fake_post):
         createUserRequest =  {
@@ -273,6 +282,16 @@ class TestUserRequests(object):
         assert response.status_code == HTTPStatus.OK
         assert "Successfully deleted 1 records" in response.data.decode('utf-8')
 
+    @patch("src.main.resources.user.requests.delete", side_effect=FakeDelete)
+    @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.authenticateRequester", return_value=False)
+    def test_delete_user_not_authorized_fails(self, request_authorized_mock, fake_delete):
+        deletedUserId = "123"
+
+        client = app.test_client()
+        response = client.delete('/api/v0/users/' + deletedUserId)
+
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
     @patch("src.main.resources.user.requests.put", side_effect=FakePut)
     @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.authenticateRequester", return_value=True)
     def test_put_user_request_returns_ok(self, request_authorized_mock, fake_put):
@@ -303,6 +322,21 @@ class TestUserRequests(object):
         response = client.put('/api/v0/users/' + modifiedUserId, json=modifiedUserRequestNoRef)
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
+
+    @patch("src.main.resources.user.requests.put", side_effect=FakePut)
+    @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.authenticateRequester", return_value=False)
+    def test_put_user_request_unauthorized_fails(self, request_authorized_mock, fake_put):
+        modifiedUserId = "123"
+        modifiedUserRequestNoRef =  {
+            "username": "TerryPratchett",
+            "name": "Terry Pratchett",
+        }
+
+        client = app.test_client()
+        response = client.put('/api/v0/users/' + modifiedUserId, json=modifiedUserRequestNoRef)
+
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
 
     @patch("src.main.resources.user.requests.get", side_effect=FakeGet)
     @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.authenticateRequester", return_value=True)
