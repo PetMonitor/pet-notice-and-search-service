@@ -29,6 +29,6 @@ class PredictionResult(Resource):
             response.raise_for_status()
             return response.json(), HTTPStatus.CREATED
         except Exception as e:
-            print("Failed to create user: {}".format(e.__cause__))
+            print("Failed to create feedback: {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
     
