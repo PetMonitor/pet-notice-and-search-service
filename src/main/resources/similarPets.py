@@ -67,18 +67,18 @@ class SimilarPetsAlerts(Resource):
             alertLimitDate = newAlertData["alertLimitDate"] 
             jobName = self.getJobName(userId)
 
+            print("Received request to create alert! {}".format(str(newAlertData)))
+
             for job in searchScheduler.get_jobs():
                 if job.name == jobName:
                     print("Removing job id: {} name: {}, and replacing with new alert.".format(job.id, job.name))
                     searchScheduler.remove_job(job.id)
 
-            alertEndDate = datetime.fromisoformat(alertLimitDate)
-
-            print("Schedule alert for similar notice search for user {} and notice {}. Scheduled to end on {}. Scheduled to run every {} hours.".format(userId, noticeId, str(alertEndDate), alertFrequency))
-
+            alertEndDate = datetime.strptime(alertLimitDate, "%Y-%m-%dT%H:%M:%S.%f")
             alertFreqExp = "*/{}".format(alertFrequency)
+            
             searchScheduler.add_job(SimilarPetsAlerts().searchSimilarNoticesAndNotify, args=[ noticeId ], trigger='cron', hour=alertFreqExp, minute=0, second=0, end_date=alertEndDate, name=jobName)
-            return "OK", HTTPStatus.OK
+            return "OK", HTTPStatus.CREATED
         except Exception as e:
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR  
@@ -118,12 +118,13 @@ class SimilarPetsAlerts(Resource):
             response = requests.get(closestMatchesURL)
             
             response.raise_for_status()
-            response = response.json()
+            closestMatchesResponse = response.json()
 
-            closestNotices = response["closestMatches"]
+            closestNotices = closestMatchesResponse["closestMatches"]
 
             if len(closestNotices) <= 0:
-                return
+                print("Running scheduled search for notice with id {}".format(noticeId))
+                return closestMatchesResponse
             
 
             noticesRes = Notice()
@@ -131,7 +132,7 @@ class SimilarPetsAlerts(Resource):
 
             # TODO: send notification with result
             # [ noticesRes.get(noticeId)[0] for noticeId in closestNotices ]
-            return
+            return closestMatchesResponse
 
         except Exception as e:
             print("ERROR {}".format(e))

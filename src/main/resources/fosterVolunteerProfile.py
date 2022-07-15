@@ -29,7 +29,7 @@ class FosterVolunteerProfile(Resource):
 
     FOSTER_VOLUNTEER_PROFILE_SCHEMA = {
         "_ref": {"type": "string", "required": True},
-        "userId": {"type": "string"},
+        "userId": {"type": "string", "required": True},
         "petTypesToFoster": {'type': 'list', 'schema': {'type': 'string'}},
         "petSizesToFoster": {'type': 'list', 'schema': {'type': 'string'}},
         "additionalInformation": {"type": "string"},
@@ -95,9 +95,9 @@ class FosterVolunteerProfile(Resource):
             profileByIdURL = DATABASE_SERVER_URL + "/fosterVolunteerProfiles/" + profileId
             print("Issue DELETE to " + profileByIdURL)
             response = requests.delete(profileByIdURL)
-            if response:
-                response.raise_for_status()
-                return "Successfully deleted {} records".format(response.json()), HTTPStatus.OK
+            
+            response.raise_for_status()
+            return "Successfully deleted {} records".format(response.json()), HTTPStatus.OK
         except Exception as e:
             print("Failed to delete profile {}: {}".format(profileId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
