@@ -6,6 +6,10 @@ from src.main.resources.similarPets import SimilarPetsAlerts
 import unittest.mock as mock
 from mock import patch, MagicMock
 
+import json
+from mock import patch
+
+
 DATABASE_URL = "http://127.0.0.1:8000"
 DATABASE_SIMILAR_PETS_URL = DATABASE_URL + "/similarPets" 
 
@@ -132,3 +136,4 @@ class TestSimilarPets(object):
 
       result = similarPetsAlerts.searchSimilarNoticesAndNotify(searchedNoticeId) 
       assert result == CLOSEST_MATCHES_EMPTY_RESPONSE   
+

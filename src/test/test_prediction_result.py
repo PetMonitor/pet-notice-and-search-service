@@ -1,5 +1,6 @@
 import json
 from http import HTTPStatus
+
 from mock import patch
 
 from src.main.app import app
@@ -40,3 +41,4 @@ class TestPredictionResult(object):
     def test_prediction_results_failure_returns_ok(self, fake_post):
         response = test_client.post('/api/v0/prediction/result/failure/' + NOTICE_ID, json=PREDICTED_NOTICES)
         assert response.status_code == HTTPStatus.CREATED
+

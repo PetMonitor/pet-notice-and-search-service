@@ -146,6 +146,7 @@ class FakePut(object):
 		if self.status_code != HTTPStatus.OK:
 			raise ValueError("Database mock server returned error {}".format(self.status_code))
 
+
 class TestUserRequests(object):
 
     @patch("src.main.utils.requestAuthorizer.RequestAuthorizer.isRequestAuthorized", return_value=True)
@@ -419,3 +420,4 @@ class TestUserRequests(object):
         response = client.put('/api/v0/users/' + modifiedUserId + '/password', json=modifyUserPwdRequest)
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED    
+
