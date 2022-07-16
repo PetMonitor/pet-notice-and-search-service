@@ -14,6 +14,7 @@ from src.main.resources.facebookUser import FacebookUser
 from src.main.resources.similarPets import SimilarPets, SimilarPetsAlerts
 from src.main.facebook.facebookService import FacebookPostProcessor
 from src.main.resources.predictionResult import PredictionResult
+from src.main.resources.emails import ConfirmationEmail, ConfirmationEmailCheck
 
 
 app = Flask(__name__)
@@ -54,5 +55,8 @@ api.add_resource(PetFosterHistoryEntry, '/pets/<string:petId>/fosterHistory/<str
 api.add_resource(PetFosterHistory, '/pets/<string:petId>/fosterHistory', methods=['GET', 'POST'])
 
 api.add_resource(FacebookPostProcessor, '/facebook', methods=['GET'])
+
+api.add_resource(ConfirmationEmail, '/emails/confirmation', methods=['POST'])
+api.add_resource(ConfirmationEmailCheck, '/emails/confirmation/check', methods=['POST'])
 
 api.add_resource(PredictionResult, '/prediction/result/failure/<string:searchedNoticeId>', methods=['POST'])
