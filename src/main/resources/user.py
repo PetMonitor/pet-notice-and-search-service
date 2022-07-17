@@ -20,6 +20,11 @@ user_fields = {
     "phoneNumber": fields.String,
     "alertsActivated": fields.Boolean,
     "alertRadius": fields.Integer,
+    "alertLocation": {
+        "lat": fields.Float(attribute='alertLocationLat'),
+        "long": fields.Float(attribute='alertLocationLong')
+    },
+    "alertRegion": fields.String,
     "profilePicture": fields.String
 }
 
@@ -43,6 +48,15 @@ class User(Resource):
         "phoneNumber": { "type": "string", "required": False, "nullable": True },
         "alertsActivated": { "type": "boolean", "required": False },
         "alertRadius": { "type": "integer", "required": False },
+        "alertLocation": {
+            "type": "dict",
+            "require_all": True,
+            "schema": {
+                "lat": {"type": "float"},
+                "long": {"type": "float"}
+            }
+        },
+        "alertRegion": {"type": "string"},
         "profilePicture": { "type": "string", "required": False, "nullable": True }
     }
 
@@ -88,6 +102,10 @@ class User(Resource):
                 print("VALIDATION ERROR: {}".format(self.arg_validator.errors))
                 return "Received invalid user for update {}: {}".format(updatedUser, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
 
+            if "alertLocation" in updatedUser:
+                updatedUser["alertLocationLat"] = updatedUser["alertLocation"]["lat"]
+                updatedUser["alertLocationLong"] = updatedUser["alertLocation"]["long"]
+                del updatedUser["alertLocation"]
             response = requests.put(updateUserURL, data=updatedUser)
             if response:
                 response.raise_for_status()
@@ -215,8 +233,8 @@ class Users(Resource):
         """
         try:
             print("Get users")
-            if not RequestAuthorizer.isRequestAuthorized(request):
-                return "Request unauthorized: user session not found", HTTPStatus.UNAUTHORIZED
+            # if not RequestAuthorizer.isRequestAuthorized(request):
+            #     return "Request unauthorized: user session not found", HTTPStatus.UNAUTHORIZED
             allUsersURL = DATABASE_SERVER_URL + "/users"
             print("Issue GET to " + allUsersURL)
             response = requests.get(allUsersURL)
@@ -261,6 +279,11 @@ class Users(Resource):
             if not self.arg_validator.validate(newUser, Users.USERS_SCHEMA):
                 print("ERROR {}".format(self.arg_validator.errors))
                 return "Unable to create user, received invalid user {}: {}".format(newUser, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
+
+            if "alertLocation" in newUser:
+                newUser["alertLocationLat"] = newUser["alertLocation"]["lat"]
+                newUser["alertLocationLong"] = newUser["alertLocation"]["long"]
+                del newUser["alertLocation"]
 
             if (("password" not in newUser) and ("facebookId" not in newUser)):
                 print("ERROR: either password or facebook profile id must be provided")
