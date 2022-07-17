@@ -112,6 +112,14 @@ def test_get_pet_by_id_returns_requested_pet(requests_mock):
     assert json.dumps(pet) == json.dumps(TEST_PETS_OUTPUT[0])
     assert response[RESPONSE_STATUS_IDX] == HTTPStatus.OK
 
+def test_delete_pet_returns_ok(requests_mock):
+    petId = TEST_PETS[0]['uuid']
+
+    requests_mock.delete(DATABASE_URL + '/' + petId, json=[1])
+    response = UserPet().delete(TEST_USER['uuid'], petId)
+
+    assert response[RESPONSE_STATUS_IDX] == HTTPStatus.OK
+    assert response[RESPONSE_BODY_IDX] == "Correctly deleted [1] records"
+
 #TODO add post test
 #TODO add put test   
-#TODO add delete test   

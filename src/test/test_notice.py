@@ -1,3 +1,4 @@
+import copy
 import json
 from http import HTTPStatus
 
@@ -76,6 +77,22 @@ TEST_NOTICES_OUTPUT = [
       }
 ]
 
+TEST_NOTICE_REQUEST = {
+  "uuid": "123e4567-e89b-12d3-a456-426614175555",
+  "_ref": "447b86ea-b1c7-4e2a-a167-7542dcfbfd24",
+  "petId": "123e4567-e89b-12d3-a456-426614174001",
+  "noticeType": "LOST",
+  "eventLocation":{
+    "lat": 123.0,
+    "long": 345.0
+  },
+  "description": "My pet is lost! Please help!",
+  "eventTimestamp": "2021-08-16T02:34:46+00:00",
+  "street": "Green Ln",
+  "neighbourhood": "Bovingdon",
+  "locality": "Hertfordshire",
+  "country": "England",
+}
 
 RESPONSE_BODY_IDX = 0
 RESPONSE_STATUS_IDX = 1
@@ -83,11 +100,12 @@ RESPONSE_STATUS_IDX = 1
 DATABASE_URL = "http://127.0.0.1:8000"
 DATABASE_USER_NOTICES_URL = DATABASE_URL + "/users/" + TEST_USER["uuid"] + "/notices"
 
+test_client = app.test_client()
 
 def test_get_notices_returns_all_notices(requests_mock):
     requests_mock.get(DATABASE_URL + "/notices", json=TEST_NOTICES)
-    c = app.test_client()
-    response = c.get('/api/v0/notices')
+      
+    response = test_client.get('/api/v0/notices')
     responseBody = response.json
 
     # Verify response content
@@ -95,7 +113,6 @@ def test_get_notices_returns_all_notices(requests_mock):
     for i in range(len(TEST_NOTICES)):
         assert json.dumps(responseBody[i], sort_keys=True) == json.dumps(TEST_NOTICES_OUTPUT[i], sort_keys=True)
     assert response.status_code == HTTPStatus.OK
-
 
 def test_get_notice_by_id_returns_requested_notice(requests_mock):
     noticeId = TEST_NOTICES[0]["uuid"]
@@ -116,5 +133,34 @@ def test_delete_notice_by_id_returns_ok(requests_mock):
     # Verify response content 
     assert response[RESPONSE_STATUS_IDX] == HTTPStatus.OK
 
-#TODO add post test
-#TODO add put test
+def test_create_notice_returns_ok(requests_mock):
+    userId = TEST_USER['uuid']
+    
+    requests_mock.post(DATABASE_USER_NOTICES_URL, json=TEST_NOTICES[0])
+        
+    postUrl = '/api/v0/users/{}/notices'.format(userId)
+    testResponse = test_client.post(postUrl, json=TEST_NOTICE_REQUEST)
+    responseBody = testResponse.data
+
+    print("POST RESPONSE {}".format(str(responseBody)))
+    # Verify response content 
+    assert testResponse.status_code == HTTPStatus.CREATED.value
+    #assert responseBody["eventLocationLat"] == TEST_NOTICE_REQUEST["eventLocation"]["lat"]
+    #assert responseBody["eventLocationLong"] == TEST_NOTICE_REQUEST["eventLocation"]["long"]
+
+
+def test_update_notice_returns_ok(requests_mock):
+    userId = TEST_USER['uuid']
+    noticeId = TEST_NOTICE_REQUEST['uuid']
+    
+    requests_mock.put(DATABASE_USER_NOTICES_URL + '/' + noticeId, json=[1])
+        
+    postUrl = '/api/v0/users/{}/notices/{}'.format(userId, noticeId)
+
+    testNoticeRequestBody = copy.deepcopy(TEST_NOTICE_REQUEST)
+    del testNoticeRequestBody['uuid']
+    testResponse = test_client.put(postUrl, json=testNoticeRequestBody)
+    responseBody = testResponse.json
+
+    assert testResponse.status_code == HTTPStatus.OK
+    assert responseBody == "Successfully updated 1 records"

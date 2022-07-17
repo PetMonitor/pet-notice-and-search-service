@@ -95,21 +95,21 @@ class User(Resource):
             if not RequestAuthorizer.authenticateRequester(userId, request):
                 return "Request unauthorized: user session not found", HTTPStatus.UNAUTHORIZED
             updateUserURL = DATABASE_SERVER_URL + "/users/" + userId
-            print("Issue PUT to " + updateUserURL)
 
             updatedUser = request.get_json()
             if not self.arg_validator.validate(updatedUser, User.USER_SCHEMA):
                 print("VALIDATION ERROR: {}".format(self.arg_validator.errors))
                 return "Received invalid user for update {}: {}".format(updatedUser, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
 
+            print("Issue PUT to " + updateUserURL)
             if "alertLocation" in updatedUser:
                 updatedUser["alertLocationLat"] = updatedUser["alertLocation"]["lat"]
                 updatedUser["alertLocationLong"] = updatedUser["alertLocation"]["long"]
                 del updatedUser["alertLocation"]
             response = requests.put(updateUserURL, data=updatedUser)
-            if response:
-                response.raise_for_status()
-                return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
+
+            response.raise_for_status()
+            return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
         except Exception as e:
             print("Failed to update user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
@@ -125,9 +125,9 @@ class User(Resource):
             deleteUserURL = DATABASE_SERVER_URL + "/users/" + userId
             print("Issue DELETE to " + deleteUserURL)
             response = requests.delete(deleteUserURL)
-            if response:
-                response.raise_for_status()
-                return "Successfully deleted {} records".format(response.json()['deletedCount']), HTTPStatus.OK
+
+            response.raise_for_status()
+            return "Successfully deleted {} records".format(response.json()['deletedCount']), HTTPStatus.OK
         except Exception as e:
             print("Failed to delete user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
@@ -151,18 +151,18 @@ class UserPwd(Resource):
         try:
             if not RequestAuthorizer.authenticateRequester(userId, request):
                 return "Request unauthorized: user session not found", HTTPStatus.UNAUTHORIZED
-            updateUserURL = DATABASE_SERVER_URL + "/users/" + userId + "/password"
-            print("Issue PUT to " + updateUserURL)
+            updateUserURL = DATABASE_SERVER_URL + "/users/{}/password".format(userId)
 
             updatedUserPwd = request.get_json()
             if not self.arg_validator.validate(updatedUserPwd, UserPwd.USER_PWD_SCHEMA):
                 print("VALIDATION ERROR: {}".format(self.arg_validator.errors))
                 return "Received invalid user password for update".format(self.arg_validator.errors), HTTPStatus.BAD_REQUEST
 
+            print("Issue PUT to " + updateUserURL)
             response = requests.put(updateUserURL, data=updatedUserPwd)
-            if response:
-                response.raise_for_status()
-                return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
+
+            response.raise_for_status()
+            return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
         except Exception as e:
             print("Failed to update user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR        
@@ -170,7 +170,6 @@ class UserPwd(Resource):
 
 class Users(Resource):
 
-    # TODO: add profile picture for facebook users
     USERS_SCHEMA = {
         "uuid": { "type": "string", "required": True },
         "_ref": { "type": "string", "required": True },
@@ -178,7 +177,7 @@ class Users(Resource):
         "name": { "type": "string", "required": False },
         "password": { "type": "string", "required": False },
         "facebookId": { "type": "string", "required": False },
-        "email": { "type": "string" },
+        "email": { "type": "string", "required": True },
         "profilePicture": {
             "type": "dict",
             "required": False,
@@ -291,12 +290,11 @@ class Users(Resource):
 
             # print('Creating user {}'.format(newUser))
             response = requests.post(DATABASE_SERVER_URL + "/users", headers={'Content-Type': 'application/json'}, data=json.dumps(newUser))
-            if response:
-                response.raise_for_status()
-                return response.json(), HTTPStatus.CREATED
-            return "Received empty response from database server. User creation failed.", HTTPStatus.INTERNAL_SERVER_ERROR
+
+            response.raise_for_status()
+            return response.json(), HTTPStatus.CREATED
         except Exception as e:
-            print("Failed to create user: {}".format(e.__cause__))
+            print("Failed to create user: {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
