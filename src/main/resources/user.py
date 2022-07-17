@@ -233,8 +233,8 @@ class Users(Resource):
         """
         try:
             print("Get users")
-            # if not RequestAuthorizer.isRequestAuthorized(request):
-            #     return "Request unauthorized: user session not found", HTTPStatus.UNAUTHORIZED
+            if not RequestAuthorizer.isRequestAuthorized(request):
+                return "Request unauthorized: user session not found", HTTPStatus.UNAUTHORIZED
             allUsersURL = DATABASE_SERVER_URL + "/users"
             print("Issue GET to " + allUsersURL)
             response = requests.get(allUsersURL)
