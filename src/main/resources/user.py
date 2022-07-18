@@ -150,6 +150,42 @@ class UserPwd(Resource):
             return e, HTTPStatus.INTERNAL_SERVER_ERROR        
 
 
+class UserPwdReset(Resource):
+
+    USER_RESET_PWD_SCHEMA = {
+        "emailAddress": { "type": "string", "required": True },
+    }
+
+    def __init__(self):
+        # Argument validator for UserPwdReset methods' bodies
+        self.arg_validator = Validator()
+        self.arg_validator.allow_unknown = False
+        super(UserPwdReset, self).__init__()
+
+    def put(self):
+        try:
+            resetUserPwdURL = DATABASE_SERVER_URL + "/users/password/reset"
+
+            resetUserPwdData = request.get_json()
+            if not self.arg_validator.validate(resetUserPwdData, UserPwdReset.USER_RESET_PWD_SCHEMA):
+                print("VALIDATION ERROR: {}".format(self.arg_validator.errors))
+                return "Received invalid user data to reset password".format(self.arg_validator.errors), HTTPStatus.BAD_REQUEST
+
+            print("Issue PUT to " + resetUserPwdURL)
+            response = requests.put(resetUserPwdURL, data=resetUserPwdData)
+            
+            print("Reponse status code {}".format(response.status_code))
+            if response.status_code == HTTPStatus.NOT_FOUND:
+                return "No user with provided email found", HTTPStatus.NOT_FOUND
+            
+            response.raise_for_status()
+            return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
+        except Exception as e:
+            print("Failed to reset user password {}: {}".format(request.get_json(), e))
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR        
+
+
+
 class Users(Resource):
 
     USERS_SCHEMA = {
