@@ -26,7 +26,7 @@ class SimilarPets(Resource):
         Retrieves the pets which are near in terms of similarity to the one provided.
         """
         try:
-            closestMatchesURL = DATABASE_SERVER_URL + "/pets/finder/" + noticeId
+            closestMatchesURL = DATABASE_SERVER_URL + "/pets/finder/" + noticeId + "?" + request.query_string.decode("utf-8")
             print("Issue GET to " + closestMatchesURL)
             response = requests.get(closestMatchesURL)
             
