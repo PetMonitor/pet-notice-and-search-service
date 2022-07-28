@@ -11,7 +11,7 @@ from src.main.resources.photo import Photo, UserProfilePicture
 from src.main.resources.ping import Ping
 from src.main.resources.login import UserLogin, UserLogout
 from src.main.resources.facebookUser import FacebookUser
-from src.main.resources.similarPets import SimilarPets, SimilarPetsAlerts
+from src.main.resources.similarPets import SimilarPets, SimilarPetsAlerts, SimilarPetsAlertsManual
 from src.main.facebook.facebookService import FacebookPostProcessor
 from src.main.resources.predictionResult import PredictionResult
 from src.main.resources.emails import ConfirmationEmail, ConfirmationEmailCheck
@@ -46,6 +46,7 @@ api.add_resource(Notices, '/notices', methods=['GET'])
 api.add_resource(Notice, '/notices/<string:noticeId>', methods=['GET'])
 api.add_resource(SimilarPets, '/similarPets/<string:noticeId>', methods=['GET'])
 api.add_resource(SimilarPetsAlerts, '/similarPets/alerts', methods=['GET', 'POST', 'DELETE'])
+api.add_resource(SimilarPetsAlertsManual, '/alerts/manual', methods=['POST'])
 
 api.add_resource(Photo, '/photos/<string:photoId>', methods=['GET'])
 api.add_resource(UserProfilePicture, '/photos/profile/<string:userId>', methods=['GET'])
