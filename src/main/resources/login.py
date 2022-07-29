@@ -44,7 +44,6 @@ class UserLogin(Resource):
         Login endpoint for users.
         """        
         try:
-            print("User login")
             userCredentials = request.get_json()
             if not (self.arg_validator.validate(userCredentials, UserLogin.USER_CREDENTIALS_SCHEMA) or self.arg_validator.validate(userCredentials, UserLogin.FACEBOOK_USER_CREDENTIALS_SCHEMA)):
                 print("ERROR {}".format(self.arg_validator.errors))

@@ -70,7 +70,7 @@ class Notice(Resource):
         :param noticeId identifier of the notice that will be retrieved.
         """
         try:
-            noticeByIdURL = DATABASE_SERVER_URL + "/notices/" + noticeId
+            noticeByIdURL = DATABASE_SERVER_URL + "/notices/" + str(noticeId)
             print("Issue GET to " + noticeByIdURL)
             response = requests.get(noticeByIdURL)
             if response:

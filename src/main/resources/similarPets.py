@@ -26,7 +26,7 @@ class SimilarPets(Resource):
         Retrieves the pets which are near in terms of similarity to the one provided.
         """
         try:
-            closestMatchesURL = DATABASE_SERVER_URL + "/pets/finder/" + noticeId
+            closestMatchesURL = DATABASE_SERVER_URL + "/pets/finder/" + noticeId + "?" + request.query_string.decode("utf-8")
             print("Issue GET to " + closestMatchesURL)
             response = requests.get(closestMatchesURL)
             
@@ -39,10 +39,10 @@ class SimilarPets(Resource):
                 return "No matches found!", HTTPStatus.NOT_FOUND
             
             
-            print("Got {} closest matches for notice {}".format(len(closestNotices), noticeId))
+            print("Got {} closest matches for notice {}".format(closestNotices, noticeId))
 
             noticesRes = Notice()
-            return [ noticesRes.get(noticeId)[0] for noticeId in closestNotices ], HTTPStatus.OK
+            return [ noticesRes.get(closestNoticeId)[0] for closestNoticeId in closestNotices ], HTTPStatus.OK
 
         except Exception as e:
             print("ERROR {}".format(e))
@@ -74,10 +74,10 @@ class SimilarPetsAlerts(Resource):
                     print("Removing job id: {} name: {}, and replacing with new alert.".format(job.id, job.name))
                     searchScheduler.remove_job(job.id)
 
-            alertEndDate = datetime.strptime(alertLimitDate, "%Y-%m-%dT%H:%M:%S.%f")
+            alertEndDate = datetime.strptime(alertLimitDate, "%Y-%m-%d")
             alertFreqExp = "*/{}".format(alertFrequency)
             
-            searchScheduler.add_job(SimilarPetsAlerts().searchSimilarNoticesAndNotify, args=[ noticeId ], trigger='cron', hour=alertFreqExp, minute=0, second=0, end_date=alertEndDate, name=jobName)
+            searchScheduler.add_job(SimilarPetsAlerts().searchSimilarNoticesAndNotify, args=[ userId, noticeId ], trigger='cron', hour=alertFreqExp, minute=0, second=0, end_date=alertEndDate, name=jobName)
             return "OK", HTTPStatus.CREATED
         except Exception as e:
             print("ERROR {}".format(e))
@@ -106,7 +106,7 @@ class SimilarPetsAlerts(Resource):
         return userId + "_noticeSearch"
 
 
-    def searchSimilarNoticesAndNotify(self, noticeId):
+    def searchSimilarNoticesAndNotify(self, userId, noticeId):
         """
         Retrieves the pets which are near in terms of similarity to the one provided.
         """
@@ -126,12 +126,18 @@ class SimilarPetsAlerts(Resource):
                 print("Running scheduled search for notice with id {}".format(noticeId))
                 return closestMatchesResponse
             
+            closestMatchesNotificationsURL = DATABASE_SERVER_URL + "/notifications/notices/closestMatches"
+            print("Issue POST to " + closestMatchesNotificationsURL)
 
-            noticesRes = Notice()
+            notificationData = {
+                "userId": userId,
+                "noticeId": noticeId,
+                "closestMatches": closestNotices
+            }
+            response = requests.post(closestMatchesNotificationsURL, notificationData)
             
+            response.raise_for_status()
 
-            # TODO: send notification with result
-            # [ noticesRes.get(noticeId)[0] for noticeId in closestNotices ]
             return closestMatchesResponse
 
         except Exception as e:
@@ -158,3 +164,17 @@ class SimilarPetsAlerts(Resource):
         except Exception as e:
             print("ERROR {}".format(e))
             return str(e), HTTPStatus.INTERNAL_SERVER_ERROR  
+
+class SimilarPetsAlertsManual(Resource):
+
+    def post(self):
+        try:
+            print("Run all alerts manually")
+            refreshed = []
+            for job in searchScheduler.get_jobs():
+                searchScheduler.get_job(job_id = job.id).modify(next_run_time=datetime.now())
+                refreshed.append(job.id)
+            return {'number': len(searchScheduler.get_jobs()), 'list': refreshed}, HTTPStatus.OK
+        except Exception as e:
+            print("ERROR {}".format(e))
+            return str(e), HTTPStatus.INTERNAL_SERVER_ERROR         

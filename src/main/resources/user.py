@@ -20,6 +20,11 @@ user_fields = {
     "phoneNumber": fields.String,
     "alertsActivated": fields.Boolean,
     "alertRadius": fields.Integer,
+    "alertLocation": {
+        "lat": fields.Float(attribute='alertLocationLat'),
+        "long": fields.Float(attribute='alertLocationLong')
+    },
+    "alertRegion": fields.String,
     "profilePicture": fields.String
 }
 
@@ -43,6 +48,15 @@ class User(Resource):
         "phoneNumber": { "type": "string", "required": False, "nullable": True },
         "alertsActivated": { "type": "boolean", "required": False },
         "alertRadius": { "type": "integer", "required": False },
+        "alertLocation": {
+            "type": "dict",
+            "require_all": True,
+            "schema": {
+                "lat": {"type": "float"},
+                "long": {"type": "float"}
+            }
+        },
+        "alertRegion": {"type": "string"},
         "profilePicture": { "type": "string", "required": False, "nullable": True }
     }
 
@@ -88,8 +102,12 @@ class User(Resource):
                 return "Received invalid user for update {}: {}".format(updatedUser, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
 
             print("Issue PUT to " + updateUserURL)
+            if "alertLocation" in updatedUser:
+                updatedUser["alertLocationLat"] = updatedUser["alertLocation"]["lat"]
+                updatedUser["alertLocationLong"] = updatedUser["alertLocation"]["long"]
+                del updatedUser["alertLocation"]
             response = requests.put(updateUserURL, data=updatedUser)
-            
+
             response.raise_for_status()
             return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
         except Exception as e:
@@ -107,7 +125,7 @@ class User(Resource):
             deleteUserURL = DATABASE_SERVER_URL + "/users/" + userId
             print("Issue DELETE to " + deleteUserURL)
             response = requests.delete(deleteUserURL)
-            
+
             response.raise_for_status()
             return "Successfully deleted {} records".format(response.json()['deletedCount']), HTTPStatus.OK
         except Exception as e:
@@ -142,12 +160,48 @@ class UserPwd(Resource):
 
             print("Issue PUT to " + updateUserURL)
             response = requests.put(updateUserURL, data=updatedUserPwd)
-            
+
             response.raise_for_status()
             return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
         except Exception as e:
             print("Failed to update user {}: {}".format(userId, e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR        
+
+
+class UserPwdReset(Resource):
+
+    USER_RESET_PWD_SCHEMA = {
+        "emailAddress": { "type": "string", "required": True },
+    }
+
+    def __init__(self):
+        # Argument validator for UserPwdReset methods' bodies
+        self.arg_validator = Validator()
+        self.arg_validator.allow_unknown = False
+        super(UserPwdReset, self).__init__()
+
+    def put(self):
+        try:
+            resetUserPwdURL = DATABASE_SERVER_URL + "/users/password/reset"
+
+            resetUserPwdData = request.get_json()
+            if not self.arg_validator.validate(resetUserPwdData, UserPwdReset.USER_RESET_PWD_SCHEMA):
+                print("VALIDATION ERROR: {}".format(self.arg_validator.errors))
+                return "Received invalid user data to reset password".format(self.arg_validator.errors), HTTPStatus.BAD_REQUEST
+
+            print("Issue PUT to " + resetUserPwdURL)
+            response = requests.put(resetUserPwdURL, data=resetUserPwdData)
+            
+            print("Reponse status code {}".format(response.status_code))
+            if response.status_code == HTTPStatus.NOT_FOUND:
+                return "No user with provided email found", HTTPStatus.NOT_FOUND
+            
+            response.raise_for_status()
+            return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
+        except Exception as e:
+            print("Failed to reset user password {}: {}".format(request.get_json(), e))
+            return e, HTTPStatus.INTERNAL_SERVER_ERROR        
+
 
 
 class Users(Resource):
@@ -260,6 +314,11 @@ class Users(Resource):
             if not self.arg_validator.validate(newUser, Users.USERS_SCHEMA):
                 print("ERROR {}".format(self.arg_validator.errors))
                 return "Unable to create user, received invalid user {}: {}".format(newUser, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
+
+            if "alertLocation" in newUser:
+                newUser["alertLocationLat"] = newUser["alertLocation"]["lat"]
+                newUser["alertLocationLong"] = newUser["alertLocation"]["long"]
+                del newUser["alertLocation"]
 
             if (("password" not in newUser) and ("facebookId" not in newUser)):
                 print("ERROR: either password or facebook profile id must be provided")
