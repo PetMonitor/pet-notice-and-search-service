@@ -33,6 +33,7 @@ user_contact_info_fields = {
     "userId": fields.String(attribute="uuid"),
     "email": fields.String,
     "name": fields.String,
+    "username": fields.String,
     "phoneNumber": fields.String,
 }
 
@@ -352,6 +353,7 @@ class UserContactInfo(Resource):
                 contact_info_response = {
                     'uuid': json_response["uuid"],
                     'name': json_response["name"],
+                    'username': json_response["username"],
                     'phoneNumber': json_response["phoneNumber"],
                     'email': json_response["email"],
                 }
