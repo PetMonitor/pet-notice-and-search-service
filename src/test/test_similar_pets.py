@@ -14,7 +14,9 @@ from src.test.test_user import TEST_USERS
 
 DATABASE_URL = "http://127.0.0.1:8000"
 DATABASE_SIMILAR_PETS_URL = DATABASE_URL + "/similarPets" 
-
+DATABASE_NOTIFICATIONS_URL = DATABASE_URL + "/notifications/notices/closestMatches"
+DATABASE_SIMILAR_PETS_FINDER = DATABASE_URL + "/pets/finder/123"
+DATABASE_SIMILAR_PETS_FINDER_EMPTY = DATABASE_URL + "/pets/finder/456"
 CLOSEST_MATCHES_RESPONSE = {
     "closestMatches": [ "123e4567-e89b-12d3-a456-426614175555", "123e4567-e89b-12d3-a456-426614176666" ]
 }
@@ -61,6 +63,52 @@ TEST_NOTICES_OUTPUT = [
 
 TEST_SCHEDULED_JOBS = [FakeScheduledJob("123","testScheduledJob_123"), FakeScheduledJob("456", "testScheduledJob_456")]
 
+class FakePost(object):
+	def __init__(self, url, headers={}, data=''):
+		self.url = url
+		self.db = DATABASE_URL
+		self.data = data
+		self.status_code = 0
+
+		if (self.url == DATABASE_NOTIFICATIONS_URL):
+			self.status_code = 201
+			self.response = { "code" : self.status_code }            
+		else:
+			self.response = { "code" : 404, "message" : "Not Found" }
+
+	def json(self):
+		return self.response["user"]        
+
+	def raise_for_status(self):
+		if self.status_code != HTTPStatus.CREATED:
+			raise ValueError("Database mock server returned error {}".format(self.status_code))
+
+
+class FakeGet(object):
+    def __init__(self, url, headers={}):
+        self.url = url
+        self.headers = headers
+        self.status_code = 0
+
+        if (self.url == DATABASE_SIMILAR_PETS_FINDER):
+            self.status_code = 200
+            self.response = CLOSEST_MATCHES_RESPONSE
+        elif (self.url == DATABASE_SIMILAR_PETS_FINDER_EMPTY):
+            self.status_code = 200
+            self.response = CLOSEST_MATCHES_EMPTY_RESPONSE
+        else:
+            self.status_code = 404
+            self.response = {"error":"test route not found"}            
+
+    def json(self):
+        return self.response
+    
+    def raise_for_status(self):
+        return
+
+    def response(self):
+        return self.response
+
 class TestSimilarPets(object):
 
 
@@ -92,7 +140,7 @@ class TestSimilarPets(object):
         "noticeId": "123",
         "userId": "456",
         "alertFrequency": 1,
-        "alertLimitDate": "2002-12-04T20:26:08.937881"
+        "alertLimitDate": "2002-12-04"
       }
       response = app.test_client().post('/api/v0/similarPets/alerts', json=newAlertReq)
       assert response.status_code == HTTPStatus.CREATED 
@@ -108,7 +156,7 @@ class TestSimilarPets(object):
         "noticeId": "123",
         "userId": "456",
         "alertFrequency": 1,
-        "alertLimitDate": "2002-12-04T20:26:08.937881"
+        "alertLimitDate": "2002-12-04"
       }
       response = app.test_client().post('/api/v0/similarPets/alerts', json=newAlertReq)
       assert response.status_code == HTTPStatus.CREATED 
@@ -121,21 +169,22 @@ class TestSimilarPets(object):
       response = app.test_client().delete('/api/v0/similarPets/alerts', json=deleteAlertReq)
       assert response.status_code == HTTPStatus.CREATED 
 
-  #TODO: update this test when notifications are added
-  def test_search_similar_notices_and_notify_alerts_users(self, requests_mock):
+  @patch("src.main.resources.user.requests.get", side_effect=FakeGet)
+  @patch("src.main.resources.user.requests.post", side_effect=FakePost)
+  def test_search_similar_notices_and_notify_alerts_users(self, fake_get, fake_post):
       searchedNoticeId = "123"
       similarPetsAlerts = SimilarPetsAlerts()
-      requests_mock.get(DATABASE_URL + "/pets/finder/" + searchedNoticeId, json=CLOSEST_MATCHES_RESPONSE)
+      #requests_mock.get(DATABASE_URL + "/pets/finder/" + searchedNoticeId, json=CLOSEST_MATCHES_RESPONSE)
 
       result = similarPetsAlerts.searchSimilarNoticesAndNotify(TEST_USERS[0]["uuid"], searchedNoticeId) 
       assert result == CLOSEST_MATCHES_RESPONSE
 
-  #TODO: update this test when notifications are added
-  def test_search_similar_notices_and_no_matches_found_does_not_alert_users(self, requests_mock):
-      searchedNoticeId = "123"
+  @patch("src.main.resources.user.requests.get", side_effect=FakeGet)
+  @patch("src.main.resources.user.requests.post", side_effect=FakePost)
+  def test_search_similar_notices_and_no_matches_found_does_not_alert_users(self, fake_get, fake_post):
+      searchedNoticeId = "456"
       similarPetsAlerts = SimilarPetsAlerts()
-      requests_mock.get(DATABASE_URL + "/pets/finder/" + searchedNoticeId, json=CLOSEST_MATCHES_EMPTY_RESPONSE)
 
-      result = similarPetsAlerts.searchSimilarNoticesAndNotify(searchedNoticeId) 
+      result = similarPetsAlerts.searchSimilarNoticesAndNotify(TEST_USERS[0]["uuid"], searchedNoticeId) 
       assert result == CLOSEST_MATCHES_EMPTY_RESPONSE   
 

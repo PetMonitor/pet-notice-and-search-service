@@ -13,7 +13,8 @@ TEST_USERS = [{
     "name": "Terry Pratchett",
     "phoneNumber": "222-000-666",
     "profilePicture": None,
-    "alertLocation": { "lat": "123123123", "long": "456456456456"}, 
+    "alertLocationLat": 12.31,
+    "alertLocationLong": 45.64,
     "alertRadius": 1, 
     "alertRegion": "Belgrano", 
     "alertsActivated": True,
@@ -27,10 +28,10 @@ TEST_USERS_OUTPUT = [{
     "name": "Terry Pratchett",
     "phoneNumber": "222-000-666",
     "profilePicture": None,
-    "alertLocation": { "lat": "123123123", "long": "456456456456"}, 
+    "alertLocation": { "lat": 12.31, "long": 45.64 }, 
     "alertRadius": 1, 
     "alertRegion": "Belgrano", 
-    "alertsActivated": True,
+    "alertsActivated": True, 
 }]
 
 TEST_NEW_USER_NO_PETS = {
