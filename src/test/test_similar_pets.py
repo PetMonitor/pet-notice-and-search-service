@@ -9,6 +9,8 @@ from mock import patch, MagicMock
 import json
 from mock import patch
 
+from src.test.test_user import TEST_USERS
+
 
 DATABASE_URL = "http://127.0.0.1:8000"
 DATABASE_SIMILAR_PETS_URL = DATABASE_URL + "/similarPets" 
@@ -125,7 +127,7 @@ class TestSimilarPets(object):
       similarPetsAlerts = SimilarPetsAlerts()
       requests_mock.get(DATABASE_URL + "/pets/finder/" + searchedNoticeId, json=CLOSEST_MATCHES_RESPONSE)
 
-      result = similarPetsAlerts.searchSimilarNoticesAndNotify(searchedNoticeId) 
+      result = similarPetsAlerts.searchSimilarNoticesAndNotify(TEST_USERS[0]["uuid"], searchedNoticeId) 
       assert result == CLOSEST_MATCHES_RESPONSE
 
   #TODO: update this test when notifications are added
