@@ -13,6 +13,10 @@ TEST_USERS = [{
     "name": "Terry Pratchett",
     "phoneNumber": "222-000-666",
     "profilePicture": None,
+    "alertLocation": { "lat": "123123123", "long": "456456456456"}, 
+    "alertRadius": 1, 
+    "alertRegion": "Belgrano", 
+    "alertsActivated": True,
 }]
 
 TEST_USERS_OUTPUT = [{
