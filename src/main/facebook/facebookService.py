@@ -14,10 +14,10 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 DATE_FORMAT_STR = "%Y-%m-%dT%H:%M:%S+%f"
 
-POST_TAG_TYPE = { 
-    "#perdida" : PostState.LOST, 
+POST_TAG_TYPE = {
+    "#perdida": PostState.LOST,
     "#encontrada": PostState.FOUND,
-    "#perdido" : PostState.LOST, 
+    "#perdido": PostState.LOST,
     "#encontrado": PostState.FOUND  
 }
 
@@ -30,9 +30,9 @@ class FacebookPostProcessor(Resource):
 
     def processFacebookPosts(self):
         print("Processing facebook posts")
-        
+
         # get feed
-        petMonitorFeed = requests.get(FACEBOOK_GRAPH_BASE_URL + GROUP_ID + "/feed?access_token={}".format(FB_USER_ACCESS_TOKEN))
+        petMonitorFeed = requests.get(FACEBOOK_GRAPH_BASE_URL + GROUP_ID + "/feed?fields=place,message&access_token={}".format(FB_USER_ACCESS_TOKEN))
 
         if not petMonitorFeed:
             print("Attempt to retrieve Pet Monitor Facebook page feed failed. Facebook did not return response.")
@@ -48,16 +48,13 @@ class FacebookPostProcessor(Resource):
         # Reverse feed order, because we get newest posts first, by default.
         petMonitorFeed = petMonitorFeed[::-1]
 
-        
         postIdsReqBody = { "postIds": [ post["id"] for post in petMonitorFeed ] }
-        
 
         # Check if which messages have been processed before
         responseUnprocessedPosts = requests.post(DATABASE_SERVER_URL + "/facebook/posts/processed/filter", data=postIdsReqBody)
         responseUnprocessedPosts.raise_for_status()
 
         responseUnprocessedPosts = responseUnprocessedPosts.json()["postIds"]
-        
 
         for post in petMonitorFeed:
             if post["id"] not in responseUnprocessedPosts:
@@ -71,16 +68,16 @@ class FacebookPostProcessor(Resource):
             print("Processing post {} created at {}".format(post["id"], post["created_time"]))
 
             postMessage = post["message"]
-            postMessageWords =  postMessage.split(" ")
+            postMessageWords = postMessage.split(" ")
 
             print("Processing post's content {} - {}".format(post["id"], postMessage))
 
             postType = None
             # Otherwise process message
-            for hashtag in POST_TAG_TYPE.keys():
-                if hashtag in postMessageWords:
-                    postType = POST_TAG_TYPE[hashtag]
-                    print("Processing message {}. Pet tagged as {} for this post.".format(post["id"], POST_TAG_TYPE[hashtag]))
+            for word in postMessageWords.lower():
+                if word in POST_TAG_TYPE:
+                    postType = POST_TAG_TYPE[word]
+                    print("Processing message {}. Pet tagged as {} for this post.".format(post["id"], POST_TAG_TYPE[word]))
 
             postAttachments = requests.get(FACEBOOK_GRAPH_BASE_URL + post["id"] + "/attachments?access_token={}".format(FB_USER_ACCESS_TOKEN))
 
@@ -106,6 +103,11 @@ class FacebookPostProcessor(Resource):
                 continue
             
             eventTimestamp = time.mktime(datetime.strptime(post["created_time"], DATE_FORMAT_STR).timetuple())
+            place = post["place"]
+            if place and ("location" in place) and ("city" in place["location"]):
+                postLocation = place["location"]["city"]
+            else:
+                postLocation = None
 
             petPost = {
                 "uuid": str(uuid.uuid4()),
@@ -116,13 +118,14 @@ class FacebookPostProcessor(Resource):
                 "type": str(postType),
                 "eventTimestamp": eventTimestamp,
                 "images": postImages,
+                "location": postLocation
             }
-
 
             responseCreatedPost = requests.post(DATABASE_SERVER_URL + "/facebook/posts", headers={'Content-Type': 'application/json'}, data=json.dumps(petPost))
             responseCreatedPost.raise_for_status()
 
-            responseClosestPets = requests.get(DATABASE_SERVER_URL + "/pets/finder/facebook/posts/" + post["id"])
+            regionFilter = "?region=" + postLocation if postLocation else ""
+            responseClosestPets = requests.get(DATABASE_SERVER_URL + "/pets/finder/facebook/posts/" + post["id"] + regionFilter)
             # Request to get closest matches on fb page
             print("Closest matches for {} are {}".format(post["id"], str(responseClosestPets)))
 
@@ -132,7 +135,6 @@ class FacebookPostProcessor(Resource):
             if (len(closestPosts) == 0):
                 print("No posts returned for post {}".format(post["id"]))
                 continue
-
 
             predictedPostsResponse = "Encontramos estos posts con mascotas similares a la tuya: \n"
             newPredictionResponse = "Hay una nueva publicación con una mascota similar a la tuya: {}".format(petPost["url"])
@@ -145,8 +147,6 @@ class FacebookPostProcessor(Resource):
             # Submit response with closest matches for this post
             self.postReplyForComment(post["id"], predictedPostsResponse)
             print("Notify post {} of closest matches {}".format(post, predictedPostsResponse))
-            
-            
         
         delta = timedelta(days=int(POST_DATE_DELETE_DELTA_DAYS))
         beforeDate = str(datetime.today() - delta)
