@@ -6,6 +6,7 @@ from src.main.resources.fosterVolunteerProfile import FosterVolunteerProfile, Fo
 from src.main.resources.notice import Notices, UserNotices, UserNotice, Notice
 from src.main.resources.pet import UserPet, UserPets
 from src.main.resources.petsFosterHistory import PetFosterHistory, PetFosterHistoryEntry
+from src.main.resources.petTransfer import PetTransfer, PetTransferCancellation
 from src.main.resources.user import User, Users, UserPwd, UserPwdReset, UserContactInfo
 from src.main.resources.photo import Photo, UserProfilePicture
 from src.main.resources.ping import Ping
@@ -56,6 +57,8 @@ api.add_resource(FosterVolunteerProfiles, '/fosterVolunteerProfiles', methods=['
 
 api.add_resource(PetFosterHistoryEntry, '/pets/<string:petId>/fosterHistory/<string:historyId>', methods=['GET', 'PUT', 'DELETE'])
 api.add_resource(PetFosterHistory, '/pets/<string:petId>/fosterHistory', methods=['GET', 'POST'])
+api.add_resource(PetTransfer, '/pets/<string:petId>/transfer', methods=['GET', 'POST'])
+api.add_resource(PetTransferCancellation, '/pets/<string:petId>/transfer/<string:transferId>/cancel', methods=['POST'])
 
 api.add_resource(FacebookPostProcessor, '/facebook', methods=['GET'])
 

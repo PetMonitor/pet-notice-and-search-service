@@ -13,8 +13,11 @@ TEST_USERS = [{
     "name": "Terry Pratchett",
     "phoneNumber": "222-000-666",
     "profilePicture": None,
+    "alertLocationLat": 12.31,
+    "alertLocationLong": 45.64,
+    "alertRadius": 1, 
+    "alertRegion": "Belgrano", 
     "alertsActivated": True,
-    "alertRadius": 1
 }]
 
 TEST_USERS_OUTPUT = [{
@@ -25,8 +28,10 @@ TEST_USERS_OUTPUT = [{
     "name": "Terry Pratchett",
     "phoneNumber": "222-000-666",
     "profilePicture": None,
-    "alertsActivated": True,
-    "alertRadius": 1
+    "alertLocation": { "lat": 12.31, "long": 45.64 }, 
+    "alertRadius": 1, 
+    "alertRegion": "Belgrano", 
+    "alertsActivated": True, 
 }]
 
 TEST_NEW_USER_NO_PETS = {
@@ -36,8 +41,6 @@ TEST_NEW_USER_NO_PETS = {
     "email": "terrypratchett@discworld.com",
     "name": "Terry Pratchett",
     "phoneNumber": "",
-    "alertsActivated": False,
-    "alertRadius": -1,
     "profilePicture": "base64EncodedImg"
 }
 
@@ -367,6 +370,7 @@ class TestUserRequests(object):
             "name": TEST_USERS[0]["name"],
             "phoneNumber": TEST_USERS[0]["phoneNumber"],
             "email": TEST_USERS[0]["email"],
+            "username": TEST_USERS[0]["username"],
         }
 
         client = app.test_client()
