@@ -32,7 +32,7 @@ class FacebookPostProcessor(Resource):
         print("Processing facebook posts")
 
         # get feed
-        petMonitorFeed = requests.get(FACEBOOK_GRAPH_BASE_URL + GROUP_ID + "/feed?fields=place,message&access_token={}".format(FB_USER_ACCESS_TOKEN))
+        petMonitorFeed = requests.get(FACEBOOK_GRAPH_BASE_URL + GROUP_ID + "/feed?fields=place,message,created_time,story&access_token={}".format(FB_USER_ACCESS_TOKEN))
 
         if not petMonitorFeed:
             print("Attempt to retrieve Pet Monitor Facebook page feed failed. Facebook did not return response.")
@@ -68,13 +68,13 @@ class FacebookPostProcessor(Resource):
             print("Processing post {} created at {}".format(post["id"], post["created_time"]))
 
             postMessage = post["message"]
-            postMessageWords = postMessage.split(" ")
+            postMessageWords = postMessage.lower().split(" ")
 
             print("Processing post's content {} - {}".format(post["id"], postMessage))
 
             postType = None
             # Otherwise process message
-            for word in postMessageWords.lower():
+            for word in postMessageWords:
                 if word in POST_TAG_TYPE:
                     postType = POST_TAG_TYPE[word]
                     print("Processing message {}. Pet tagged as {} for this post.".format(post["id"], POST_TAG_TYPE[word]))
@@ -103,7 +103,7 @@ class FacebookPostProcessor(Resource):
                 continue
             
             eventTimestamp = time.mktime(datetime.strptime(post["created_time"], DATE_FORMAT_STR).timetuple())
-            place = post["place"]
+            place = post["place"] if "place" in post else None
             if place and ("location" in place) and ("city" in place["location"]):
                 postLocation = place["location"]["city"]
             else:
