@@ -19,7 +19,7 @@ user_fields = {
     "name": fields.String,
     "phoneNumber": fields.String,
     "alertsActivated": fields.Boolean,
-    "alertRadius": fields.Integer,
+    "alertsForReportTypes": fields.List(fields.String),
     "alertLocation": {
         "lat": fields.Float(attribute='alertLocationLat'),
         "long": fields.Float(attribute='alertLocationLong')
@@ -48,7 +48,11 @@ class User(Resource):
         "name": { "type": "string", "required": False, "nullable": True },
         "phoneNumber": { "type": "string", "required": False, "nullable": True },
         "alertsActivated": { "type": "boolean", "required": False },
-        "alertRadius": { "type": "integer", "required": False },
+        "alertsForReportTypes": { 
+            'type': 'list', 
+            'allowed': ['LOST', 'STOLEN', 'FOUND', 'FOR_ADOPTION'], 
+            "required": False 
+        },
         "alertLocation": {
             "type": "dict",
             "require_all": True,
@@ -101,6 +105,8 @@ class User(Resource):
             if not self.arg_validator.validate(updatedUser, User.USER_SCHEMA):
                 print("VALIDATION ERROR: {}".format(self.arg_validator.errors))
                 return "Received invalid user for update {}: {}".format(updatedUser, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
+
+            print("PUT USER {} ".format(str(updatedUser)))
 
             print("Issue PUT to " + updateUserURL)
             if "alertLocation" in updatedUser:
