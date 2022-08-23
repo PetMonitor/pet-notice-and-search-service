@@ -61,7 +61,7 @@ class FacebookPostProcessor(Resource):
                 print("Skipping post {}. Already marked as processed.".format(post["id"]))
                 continue
 
-            if "story" in post.keys():
+            if "story" in post.keys() and "PetMonitor está en" not in post["story"]:
                 print("Skipping post {}. Does not correspond to a user's post from the feed.".format(post["id"]))
                 continue
 
@@ -124,34 +124,48 @@ class FacebookPostProcessor(Resource):
             responseCreatedPost = requests.post(DATABASE_SERVER_URL + "/facebook/posts", headers={'Content-Type': 'application/json'}, data=json.dumps(petPost))
             responseCreatedPost.raise_for_status()
 
-            regionFilter = "?region=" + postLocation if postLocation else ""
+            regionFilter = ("?region=" + postLocation) if postLocation else ""
             responseClosestPets = requests.get(DATABASE_SERVER_URL + "/pets/finder/facebook/posts/" + post["id"] + regionFilter)
             # Request to get closest matches on fb page
             print("Closest matches for {} are {}".format(post["id"], str(responseClosestPets)))
 
             responseClosestPets.raise_for_status()
-            closestPosts = responseClosestPets.json()["foundPosts"]
+            closestPostsWithoutRegion = responseClosestPets.json()["foundPosts"]
+            closestPostsWithRegion = responseClosestPets.json()["foundPostsFromRegion"]
 
-            if (len(closestPosts) == 0):
+            if len(closestPostsWithoutRegion) == 0 and len(closestPostsWithRegion) == 0:
                 print("No posts returned for post {}".format(post["id"]))
                 continue
 
-            predictedPostsResponse = "Encontramos estos posts con mascotas similares a la tuya: \n"
-            newPredictionResponse = "Hay una nueva publicación con una mascota similar a la tuya: {}".format(petPost["url"])
-            for closestPost in closestPosts:
-                # Notify closest matches of this publication, also
-                print("Notify closest match {} of this publication {}".format(closestPost, post))
-                self.postReplyForComment(closestPost["postId"], newPredictionResponse)
-                predictedPostsResponse += closestPost["url"] + "\n"
+            if len(closestPostsWithRegion) > 0:
+                predictedPostsResponse = "POSTS SIN REGIÓN\n"
+            else:
+                predictedPostsResponse = ""
+            if len(closestPostsWithoutRegion) > 0:
+                predictedPostsResponse += "Encontramos estos posts sin filtro de región con mascotas similares a la tuya: \n"
+                newPredictionResponse = "Hay una nueva publicación con una mascota similar a la tuya: {}".format(petPost["url"])
+                for closestPost in closestPostsWithoutRegion:
+                    # Notify the closest matches of this publication, also
+                    print("Notify closest match {} of this publication {}".format(closestPost, post))
+                    self.postReplyForComment(closestPost["postId"], newPredictionResponse)
+                    predictedPostsResponse += closestPost["url"] + "\n"
 
-            # Submit response with closest matches for this post
+            if len(closestPostsWithRegion) > 0:
+                predictedPostsResponse += "\nPOSTS POR REGIÓN\nEncontramos estos posts con mascotas similares a la tuya en la misma región: \n"
+                newPredictionResponse = "Hay una nueva publicación con una mascota similar a la tuya en la región: {}".format(petPost["url"])
+                for closestPost in closestPostsWithRegion:
+                    # Notify the closest matches of this publication, specific for the region
+                    print("Notify closest region match {} of this publication {}".format(closestPost, post))
+                    self.postReplyForComment(closestPost["postId"], newPredictionResponse)
+                    predictedPostsResponse += closestPost["url"] + "\n"
+
+            # Submit response with the closest matches for this post
             self.postReplyForComment(post["id"], predictedPostsResponse)
             print("Notify post {} of closest matches {}".format(post, predictedPostsResponse))
         
         delta = timedelta(days=int(POST_DATE_DELETE_DELTA_DAYS))
         beforeDate = str(datetime.today() - delta)
         self.deletePostsBeforeDate(beforeDate)
-        
 
     def deletePostsBeforeDate(self, date):
         try:
@@ -160,7 +174,6 @@ class FacebookPostProcessor(Resource):
             responseDeletedPosts.raise_for_status()
         except HTTPError as httpError:
             print("Attempting to delete facebook posts created before {} resulted in error {}".format(str(date), str(httpError)))
-
 
     def postReplyForComment(self, commentId, replyMessage):
         try:
