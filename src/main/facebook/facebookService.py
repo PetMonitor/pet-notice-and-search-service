@@ -130,8 +130,9 @@ class FacebookPostProcessor(Resource):
             print("Closest matches for {} are {}".format(post["id"], str(responseClosestPets)))
 
             responseClosestPets.raise_for_status()
-            closestPostsWithoutRegion = responseClosestPets.json()["foundPosts"]
-            closestPostsWithRegion = responseClosestPets.json()["foundPostsFromRegion"]
+            closestPosts = responseClosestPets.json()
+            closestPostsWithoutRegion = closestPosts["foundPosts"]
+            closestPostsWithRegion = closestPosts["foundPostsFromRegion"]
 
             if len(closestPostsWithoutRegion) == 0 and len(closestPostsWithRegion) == 0:
                 print("No posts returned for post {}".format(post["id"]))
