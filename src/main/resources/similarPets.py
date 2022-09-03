@@ -115,7 +115,7 @@ class SimilarPetsAlerts(Resource):
         try:
             print("Looking for closest matches for {}".format(noticeId))
             
-            closestMatchesURL = DATABASE_SERVER_URL + "/pets/finder/" + noticeId + "?" + location
+            closestMatchesURL = DATABASE_SERVER_URL + "/pets/finder/" + noticeId + "?region=" + location
             print("Issue GET to " + closestMatchesURL)
             response = requests.get(closestMatchesURL)
             
