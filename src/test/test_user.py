@@ -128,7 +128,7 @@ class FakeDelete(object):
 			raise ValueError("Database mock server returned error {}".format(self.status_code))
 
 class FakePut(object):
-	def __init__(self, url, headers={}, data=''):
+	def __init__(self, url, headers={}, json=''):
 		self.url = url
 		self.db = DATABASE_URL
 		self.status_code = 0
@@ -177,10 +177,7 @@ class TestUserRequests(object):
         responseBody = json.loads(response.get_data())
 
         # Verify response content 
-        print("Reponse is {}".format(str(responseBody)))
-        print("Expected is {}".format(str(TEST_USERS_OUTPUT[0])))
-
-        #assert len(responseBody) == len(TEST_USERS_OUTPUT[0])
+        assert len(responseBody) == len(TEST_USERS_OUTPUT[0])
         assert json.dumps(responseBody, sort_keys=True) == json.dumps(TEST_USERS_OUTPUT[0], sort_keys=True)
         assert response.status_code == HTTPStatus.OK
 
@@ -326,7 +323,7 @@ class TestUserRequests(object):
         modifiedUserRequest =  {
             "_ref": "234234",
             "username": "TerryPratchett",
-            "name": "Terry Pratchett",
+            "name": "Terry Pratchett"
         }
 
         client = app.test_client()
@@ -391,7 +388,7 @@ class TestUserRequests(object):
         modifyUserPwdRequest =  {
             "_ref": "234234",
             "oldPassword": "discworld123",
-            "newPassword": "goodOmens123",
+            "newPassword": "goodOmens123"
         }
 
         client = app.test_client()

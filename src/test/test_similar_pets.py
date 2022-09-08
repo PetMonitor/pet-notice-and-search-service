@@ -15,8 +15,8 @@ from src.test.test_user import TEST_USERS
 DATABASE_URL = "http://127.0.0.1:8000"
 DATABASE_SIMILAR_PETS_URL = DATABASE_URL + "/similarPets" 
 DATABASE_NOTIFICATIONS_URL = DATABASE_URL + "/notifications/notices/closestMatches"
-DATABASE_SIMILAR_PETS_FINDER = DATABASE_URL + "/pets/finder/123"
-DATABASE_SIMILAR_PETS_FINDER_EMPTY = DATABASE_URL + "/pets/finder/456"
+DATABASE_SIMILAR_PETS_FINDER = DATABASE_URL + "/pets/finder/123?region=Birmingham"
+DATABASE_SIMILAR_PETS_FINDER_EMPTY = DATABASE_URL + "/pets/finder/456?region=Birmingham"
 CLOSEST_MATCHES_RESPONSE = {
     "closestMatches": [ "123e4567-e89b-12d3-a456-426614175555", "123e4567-e89b-12d3-a456-426614176666" ]
 }
@@ -140,7 +140,8 @@ class TestSimilarPets(object):
         "noticeId": "123",
         "userId": "456",
         "alertFrequency": 1,
-        "alertLimitDate": "2002-12-04"
+        "alertLimitDate": "2002-12-04",
+        "location": "Birmingham"
       }
       response = app.test_client().post('/api/v0/similarPets/alerts', json=newAlertReq)
       assert response.status_code == HTTPStatus.CREATED 
@@ -156,7 +157,8 @@ class TestSimilarPets(object):
         "noticeId": "123",
         "userId": "456",
         "alertFrequency": 1,
-        "alertLimitDate": "2002-12-04"
+        "alertLimitDate": "2002-12-04",
+        "location": "Birmingham"
       }
       response = app.test_client().post('/api/v0/similarPets/alerts', json=newAlertReq)
       assert response.status_code == HTTPStatus.CREATED 
@@ -174,9 +176,8 @@ class TestSimilarPets(object):
   def test_search_similar_notices_and_notify_alerts_users(self, fake_get, fake_post):
       searchedNoticeId = "123"
       similarPetsAlerts = SimilarPetsAlerts()
-      #requests_mock.get(DATABASE_URL + "/pets/finder/" + searchedNoticeId, json=CLOSEST_MATCHES_RESPONSE)
 
-      result = similarPetsAlerts.searchSimilarNoticesAndNotify(TEST_USERS[0]["uuid"], searchedNoticeId) 
+      result = similarPetsAlerts.searchSimilarNoticesAndNotify(TEST_USERS[0]["uuid"], searchedNoticeId, 'Birmingham') 
       assert result == CLOSEST_MATCHES_RESPONSE
 
   @patch("src.main.resources.user.requests.get", side_effect=FakeGet)
@@ -185,6 +186,6 @@ class TestSimilarPets(object):
       searchedNoticeId = "456"
       similarPetsAlerts = SimilarPetsAlerts()
 
-      result = similarPetsAlerts.searchSimilarNoticesAndNotify(TEST_USERS[0]["uuid"], searchedNoticeId) 
+      result = similarPetsAlerts.searchSimilarNoticesAndNotify(TEST_USERS[0]["uuid"], searchedNoticeId, 'Birmingham') 
       assert result == CLOSEST_MATCHES_EMPTY_RESPONSE   
 

@@ -174,7 +174,7 @@ class UserPwd(Resource):
                 return "Received invalid user password for update".format(self.arg_validator.errors), HTTPStatus.BAD_REQUEST
 
             print("Issue PUT to " + updateUserURL)
-            response = requests.put(updateUserURL, data=updatedUserPwd)
+            response = requests.put(updateUserURL, json=updatedUserPwd)
 
             response.raise_for_status()
             return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
@@ -205,7 +205,7 @@ class UserPwdReset(Resource):
                 return "Received invalid user data to reset password".format(self.arg_validator.errors), HTTPStatus.BAD_REQUEST
 
             print("Issue PUT to " + resetUserPwdURL)
-            response = requests.put(resetUserPwdURL, data=resetUserPwdData)
+            response = requests.put(resetUserPwdURL, json=json.dumps(resetUserPwdData))
             
             print("Reponse status code {}".format(response.status_code))
             if response.status_code == HTTPStatus.NOT_FOUND:
@@ -214,8 +214,9 @@ class UserPwdReset(Resource):
             response.raise_for_status()
             return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
         except Exception as e:
-            print("Failed to reset user password {}: {}".format(request.get_json(), e))
-            return e, HTTPStatus.INTERNAL_SERVER_ERROR        
+            raise e
+            #print("Failed to reset user password {}: {}".format(request.get_json(), e))
+            #return e, HTTPStatus.INTERNAL_SERVER_ERROR        
 
 
 
