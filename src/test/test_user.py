@@ -13,9 +13,9 @@ TEST_USERS = [{
     "name": "Terry Pratchett",
     "phoneNumber": "222-000-666",
     "profilePicture": None,
+    'alertsForReportTypes': ['LOST'],
     "alertLocationLat": 12.31,
     "alertLocationLong": 45.64,
-    "alertRadius": 1, 
     "alertRegion": "Belgrano", 
     "alertsActivated": True,
 }]
@@ -28,8 +28,8 @@ TEST_USERS_OUTPUT = [{
     "name": "Terry Pratchett",
     "phoneNumber": "222-000-666",
     "profilePicture": None,
+    'alertsForReportTypes': ['LOST'],
     "alertLocation": { "lat": 12.31, "long": 45.64 }, 
-    "alertRadius": 1, 
     "alertRegion": "Belgrano", 
     "alertsActivated": True, 
 }]
@@ -177,7 +177,10 @@ class TestUserRequests(object):
         responseBody = json.loads(response.get_data())
 
         # Verify response content 
-        assert len(responseBody) == len(TEST_USERS_OUTPUT[0])
+        print("Reponse is {}".format(str(responseBody)))
+        print("Expected is {}".format(str(TEST_USERS_OUTPUT[0])))
+
+        #assert len(responseBody) == len(TEST_USERS_OUTPUT[0])
         assert json.dumps(responseBody, sort_keys=True) == json.dumps(TEST_USERS_OUTPUT[0], sort_keys=True)
         assert response.status_code == HTTPStatus.OK
 
