@@ -16,6 +16,7 @@ from src.main.constants import DATABASE_SERVER_URL
 searchScheduler = BackgroundScheduler()
 searchScheduler.start()
 
+
 class SimilarPets(Resource):
     """
     Similar pet search resource.
@@ -48,6 +49,7 @@ class SimilarPets(Resource):
             print("ERROR {}".format(e))
             return e, HTTPStatus.INTERNAL_SERVER_ERROR  
 
+
 class SimilarPetsAlerts(Resource):
 
     def post(self):
@@ -65,6 +67,7 @@ class SimilarPetsAlerts(Resource):
             userId = newAlertData["userId"] 
             alertFrequency = newAlertData["alertFrequency"]
             alertLimitDate = newAlertData["alertLimitDate"] 
+            alertLocation = newAlertData["location"]
             jobName = self.getJobName(userId)
 
             print("Received request to create alert! {}".format(str(newAlertData)))
@@ -77,7 +80,7 @@ class SimilarPetsAlerts(Resource):
             alertEndDate = datetime.strptime(alertLimitDate, "%Y-%m-%d")
             alertFreqExp = "*/{}".format(alertFrequency)
             
-            searchScheduler.add_job(SimilarPetsAlerts().searchSimilarNoticesAndNotify, args=[ userId, noticeId ], trigger='cron', hour=alertFreqExp, minute=0, second=0, end_date=alertEndDate, name=jobName)
+            searchScheduler.add_job(SimilarPetsAlerts().searchSimilarNoticesAndNotify, args=[ userId, noticeId, alertLocation ], trigger='cron', hour=alertFreqExp, minute=0, second=0, end_date=alertEndDate, name=jobName)
             return "OK", HTTPStatus.CREATED
         except Exception as e:
             print("ERROR {}".format(e))
@@ -105,15 +108,14 @@ class SimilarPetsAlerts(Resource):
     def getJobName(self, userId):
         return userId + "_noticeSearch"
 
-
-    def searchSimilarNoticesAndNotify(self, userId, noticeId):
+    def searchSimilarNoticesAndNotify(self, userId, noticeId, location):
         """
         Retrieves the pets which are near in terms of similarity to the one provided.
         """
         try:
             print("Looking for closest matches for {}".format(noticeId))
             
-            closestMatchesURL = DATABASE_SERVER_URL + "/pets/finder/" + noticeId
+            closestMatchesURL = DATABASE_SERVER_URL + "/pets/finder/" + noticeId + "?region=" + location
             print("Issue GET to " + closestMatchesURL)
             response = requests.get(closestMatchesURL)
             
@@ -143,7 +145,6 @@ class SimilarPetsAlerts(Resource):
         except Exception as e:
             print("ERROR {}".format(e))
 
-
     def get(self):
         """
         Returns all scheduled alerts
@@ -163,7 +164,8 @@ class SimilarPetsAlerts(Resource):
             return { "jobs": scheduledJobs }, HTTPStatus.OK
         except Exception as e:
             print("ERROR {}".format(e))
-            return str(e), HTTPStatus.INTERNAL_SERVER_ERROR  
+            return str(e), HTTPStatus.INTERNAL_SERVER_ERROR
+
 
 class SimilarPetsAlertsManual(Resource):
 

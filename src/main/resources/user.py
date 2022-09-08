@@ -55,13 +55,13 @@ class User(Resource):
         },
         "alertLocation": {
             "type": "dict",
-            "require_all": True,
             "schema": {
-                "lat": {"type": "float"},
-                "long": {"type": "float"}
-            }
+                "lat": { "type": "float", "nullable": True },
+                "long": { "type": "float", "nullable": True }
+            },
+            "nullable": True
         },
-        "alertRegion": {"type": "string"},
+        "alertRegion": { "type": "string", "nullable": True },
         "profilePicture": { "type": "string", "required": False, "nullable": True }
     }
 
@@ -109,11 +109,19 @@ class User(Resource):
             print("PUT USER {} ".format(str(updatedUser)))
 
             print("Issue PUT to " + updateUserURL)
+            if "profilePicture" in updatedUser:
+                if updatedUser["profilePicture"]:
+                    updatedUser["profilePicture"] = {
+                        "uuid": str(uuid.uuid4()),
+                        "photo": updatedUser["profilePicture"]
+                    }
+                else:
+                    del updatedUser["profilePicture"]
             if "alertLocation" in updatedUser:
                 updatedUser["alertLocationLat"] = updatedUser["alertLocation"]["lat"]
                 updatedUser["alertLocationLong"] = updatedUser["alertLocation"]["long"]
                 del updatedUser["alertLocation"]
-            response = requests.put(updateUserURL, data=updatedUser)
+            response = requests.put(updateUserURL, json=updatedUser)
 
             response.raise_for_status()
             return "Successfully updated {} records".format(response.json()['updatedCount']), HTTPStatus.OK
