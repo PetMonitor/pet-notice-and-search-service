@@ -6,7 +6,7 @@ from src.main.constants import DATABASE_SERVER_URL, FACEBOOK_GRAPH_BASE_URL, GRO
 from mock import patch
 
 
-testFacebookResponse = {
+TEST_FACEBOOK_RESPONSE = {
     "data": [
         {
             "created_time": "2022-04-28T00:17:17+0000",
@@ -50,7 +50,7 @@ class FakeGet(object):
 
         if (self.url.startswith(FACEBOOK_GRAPH_BASE_URL + GROUP_ID + "/feed")):
             self.status_code = 200
-            self.response = testFacebookResponse
+            self.response = TEST_FACEBOOK_RESPONSE
         elif (self.url.startswith(FACEBOOK_GRAPH_BASE_URL  + "106287571429551_368289751895997/attachments")):
             self.status_code = 200
             self.response = { "data": {} }
@@ -131,7 +131,6 @@ class FakeDelete(object):
 
 class TestFacebookService(object):
 
-    
     @patch("src.main.resources.user.requests.get", side_effect=FakeGet)
     @patch("src.main.resources.user.requests.post", side_effect=FakePost)
     @patch("src.main.resources.user.requests.delete", side_effect=FakeDelete)

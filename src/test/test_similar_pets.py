@@ -6,7 +6,6 @@ from src.main.resources.similarPets import SimilarPetsAlerts
 import unittest.mock as mock
 from mock import patch, MagicMock
 
-import json
 from mock import patch
 
 from src.test.test_user import TEST_USERS
@@ -110,7 +109,6 @@ class FakeGet(object):
         return self.response
 
 class TestSimilarPets(object):
-
 
   def test_get_similar_pets_returns_list_with_similar_notices(self, requests_mock):
       searchedNoticeId = "123e4567-e89b-12d3-a456-426614175552"

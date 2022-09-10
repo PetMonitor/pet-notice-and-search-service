@@ -91,12 +91,6 @@ class FacebookPostProcessor(Resource):
                 if len(postAttachmentsData["subattachments"]["data"]) > 0:
                     for subattachment in postAttachmentsData["subattachments"]["data"]:
                         postImages.append(self.extractImage(subattachment))
-
-                # when to include main attachment??
-                # mainAttachmentImgSrc = self.extractImage(postAttachmentsData)
-
-                # if mainAttachmentImgSrc not in postImages:
-                #    postImages.append(mainAttachmentImgSrc)
                 
             if len(postImages) == 0:
                 print("Skipping post {} creation, because no image attachments were found.")
