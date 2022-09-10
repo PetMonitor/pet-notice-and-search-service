@@ -102,10 +102,6 @@ class TestPetTransferCancellation(object):
 
     @patch("src.main.resources.user.requests.post", side_effect=FakePost)
     def test_post_pet_transfer_creates_sends_transfer_request(self, fake_post):
-        testTransferRequest = {
-            "transferToUser": 'ddc9db6d-c416-45e3-9c72-2a1fb4f106cb',
-        }
-
         client = app.test_client()
-        response = client.post('/api/v0/pets/123/transfer', json=testTransferRequest)
+        response = client.post('/api/v0/pets/123/transfer/456/cancel')
         assert response.status_code == HTTPStatus.CREATED
