@@ -1,6 +1,5 @@
 import io
 import requests
-from os import getenv
 from http import HTTPStatus
 from cerberus import Validator
 from flask_restful import Resource
@@ -27,7 +26,7 @@ class Photo(Resource):
             print("Issue GET to " + photoURL)
             response = requests.get(photoURL)
             if response and response.status_code == HTTPStatus.OK:
-                print("Response was {}".format(response.raw))
+                #print("Response was {}".format(response.raw))
                 return send_file(io.BytesIO(response.content), 'image/png')
             resp = { "reason":"No photos found for with id {}".format(photoId) }    
             return  resp.json(), HTTPStatus.NOT_FOUND
@@ -58,7 +57,7 @@ class UserProfilePicture(Resource):
                 print("GET to " + photoURL + " returned status code " + str(response.status_code))
                 return "", response.status_code
 
-            print("Response was {}".format(response.raw))
+            #print("Response was {}".format(response.raw))
             return send_file(io.BytesIO(response.content), 'image/png')
         except Exception as e:
             print("ERROR {}".format(e))
