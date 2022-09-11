@@ -13,7 +13,6 @@ user_fields = {
     "userId": fields.String(attribute="uuid")
 }
 
-
 class FacebookUser(Resource):
 
     def __init__(self):

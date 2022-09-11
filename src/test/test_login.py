@@ -48,8 +48,6 @@ class FakePost(object):
             raise ValueError("Database mock server returned error {}".format(self.status_code))
 
 
-
-
 class TestUserLogin(object):
     @patch("src.main.resources.user.requests.post", side_effect=FakePost)
     def test_user_login_request(self, fake_post):    
