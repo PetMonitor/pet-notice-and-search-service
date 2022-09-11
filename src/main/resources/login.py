@@ -50,7 +50,7 @@ class UserLogin(Resource):
                 return "Unable to login user, received invalid login data {}: {}".format(userCredentials, self.arg_validator.errors), HTTPStatus.BAD_REQUEST
             
             # Validate user credentials
-            response = requests.post(DATABASE_SERVER_URL + "/users/credentialValidation", data=userCredentials)
+            response = requests.post(DATABASE_SERVER_URL + "/users/credentialValidation", json=userCredentials)
             print("Received response {}".format(response))
 
             if not response:

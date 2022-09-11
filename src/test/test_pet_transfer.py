@@ -97,7 +97,6 @@ class TestPetTransfer(object):
         response = client.post('/api/v0/pets/123/transfer', json=testTransferRequest)
         assert response.status_code == HTTPStatus.CREATED
 
-
 class TestPetTransferCancellation(object):
 
     @patch("src.main.resources.user.requests.post", side_effect=FakePost)
